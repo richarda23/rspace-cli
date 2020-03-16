@@ -21,6 +21,8 @@ import (
 	"github.com/spf13/cobra"
 	"rspace"
 )
+var Quiet bool
+var PageSize int
 
 // listDocumentsCmd represents the listDocuments command
 var listDocumentsCmd = &cobra.Command{
@@ -30,11 +32,17 @@ var listDocumentsCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("listDocuments called")
-		rspace.Documents()
+		config := rspace.New()
+		config.Quiet = Quiet
+		config.PageSize = PageSize
+		fmt.Println(config)
+		rspace.Documents(config)
 	},
 }
 
 func init() {
+	listDocumentsCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")
+	listDocumentsCmd.Flags().IntVarP(&PageSize, "page-size", "p", 20, "page size")
 	rootCmd.AddCommand(listDocumentsCmd)
 
 	// Here you will define your flags and configuration settings.

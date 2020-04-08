@@ -17,9 +17,7 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/spf13/cobra"
-	"rspace"
 )
 var Quiet bool
 var PageSize int
@@ -32,11 +30,8 @@ var listDocumentsCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("listDocuments called")
-		config := rspace.New()
-		config.Quiet = Quiet
-		config.PageSize = PageSize
-		fmt.Println(config)
-		rspace.Documents(config)
+		client := setup()
+		fmt.Println(client.DocumentS.GetStatus())
 	},
 }
 

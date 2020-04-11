@@ -17,9 +17,7 @@ func setup () *rspace.RsWebClient {
 		os.Exit(1)
 	}
 	url, _ := url.Parse(getenv(BASE_URL_ENV_NAME))
-	fmt.Println("url is " + url.String())
 	apikey := getenv(APIKEY_ENV_NAME)
-	fmt.Println("api is " + apikey)
 	if len(apikey) ==0 {
 		fmt.Println("No API key detected")
 		os.Exit(1)

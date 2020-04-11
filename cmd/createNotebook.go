@@ -16,15 +16,12 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"rspace"
-	"strconv"
-	"os"
 )
-var NotebookName string
-var ParentFolder string
+var notebookName string
+var parentfolder string
 // createNotebookCmd represents the createNotebook command
 var createNotebookCmd = &cobra.Command{
 	Use:   "createNotebook",
@@ -33,26 +30,8 @@ var createNotebookCmd = &cobra.Command{
 	  create-notebook --name nbname --infolder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("createNotebook called")
 		post := rspace.FolderPost{IsNotebook:true,}
-		if len(NotebookName) > 0 {
-			post.Name=NotebookName
-		}
-		if len(ParentFolder) > 0 {
-			id,err :=strconv.Atoi(ParentFolder)
-			if err != nil {
-				fmt.Println("Please supply a numeric folder id for the parent folder")
-				os.Exit(1)
-			}
-			post.ParentFolderId=id
-		}
-		webClient:=setup()
-		got, err := webClient.FolderNew(&post)
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println("got new notebook")
-		fmt.Println(got.Name)
+		doCreateFolder(notebookName, parentfolder, post)
 	},
 }
 
@@ -67,6 +46,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	 createNotebookCmd.Flags().StringVarP(&NotebookName, "name", "n", "", "A name for the notebook")
-	 createNotebookCmd.Flags().StringVarP(&ParentFolder, "folder", "f", "", "An id for the folder that will contain the new notebook")
+	 createNotebookCmd.Flags().StringVarP(&notebookName, "name", "n", "", "A name for the notebook")
+	 createNotebookCmd.Flags().StringVarP(&parentfolder, "folder", "f", "", "An id for the folder that will contain the new notebook")
 }

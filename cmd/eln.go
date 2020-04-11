@@ -21,6 +21,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var isQuiet bool
+var isVerbose bool
+var outputFormat string
 // elnCmd represents the eln command
 var elnCmd = &cobra.Command{
 	Use:   "eln",
@@ -43,7 +46,9 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// elnCmd.PersistentFlags().String("foo", "", "A help for foo")
+	 elnCmd.PersistentFlags().BoolVarP(&isQuiet, "quiet", "q", false, "Quiet output")
+	 elnCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Verbose")
+	 elnCmd.PersistentFlags().StringVarP(&outputFormat, "outputFormat", "f", "table", "Output format: 1 of 'json','table', 'csv' or 'quiet' ")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

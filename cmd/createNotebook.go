@@ -47,5 +47,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	 createNotebookCmd.Flags().StringVarP(&notebookName, "name", "n", "", "A name for the notebook")
-	 createNotebookCmd.Flags().StringVarP(&parentfolder, "folder", "f", "", "An id for the folder that will contain the new notebook")
+	 createNotebookCmd.Flags().StringVarP(&parentfolder, "folder", "p", "", "An id for the folder that will contain the new notebook")
 }

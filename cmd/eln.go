@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"fmt"
-
+	"os"
 	"github.com/spf13/cobra"
 )
 
@@ -27,15 +27,12 @@ var outputFormat string
 // elnCmd represents the eln command
 var elnCmd = &cobra.Command{
 	Use:   "eln",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Top-level command to work with RSpace ELN",
+	Long: ` Run rspace eln --help to see all the possible commands.
+	`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("eln called")
+		fmt.Fprintln(os.Stderr, "Requires a subcommand")
 	},
 }
 

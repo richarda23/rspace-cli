@@ -21,7 +21,6 @@ import (
 	"github.com/spf13/cobra"
 	"rspace"
 	"strconv"
-	"encoding/json"
 	"os"
 )
 var foldername string
@@ -30,17 +29,13 @@ var parentFolder string
 var createFolderCmd = &cobra.Command{
 	Use:   "createFolder",
 	Short: "Creates a new Folder",
-	Long: `Create a new Folder, with an optional name and parent folder
-	  create-folder --name foldername --infolder FL1234
+	Long: `Create a new Folder, with an optional name and parent folder ID
+	  create-folder --name foldername --folder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		post := rspace.FolderPost{IsNotebook:false,}
 		doCreateFolder(foldername, parentFolder, post)	
 	},
-}
-func marshal(anything interface{}) string {
-        bytes, _ := json.MarshalIndent(anything, "", "\t")
-        return string(bytes)
 }
 
 func doCreateFolder (foldername string, parentFolder string, post rspace.FolderPost) {
@@ -58,13 +53,12 @@ func doCreateFolder (foldername string, parentFolder string, post rspace.FolderP
 		webClient:=setup()
 		got, err := webClient.FolderNew(&post)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			exitWithErr(err)
 		}
 		if isQuiet {
 			fmt.Println(got.Id)
 		} else if isVerbose{
-			fmt.Println(marshal(got))
+			fmt.Println(prettyMarshal(got))
 		} else {
 			fmt.Println(got.GlobalId)
 		}
@@ -73,5 +67,5 @@ func doCreateFolder (foldername string, parentFolder string, post rspace.FolderP
 func init() {
 	elnCmd.AddCommand(createFolderCmd)
 	 createFolderCmd.Flags().StringVarP(&foldername, "name", "n", "", "A name for the folder")
-	 createFolderCmd.Flags().StringVarP(&parentFolder, "folder", "f", "", "An id for the folder that will contain the new folder")
+	 createFolderCmd.Flags().StringVarP(&parentFolder, "folder", "p", "", "An id for the folder that will contain the new folder")
 }

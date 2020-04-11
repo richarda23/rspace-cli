@@ -2,10 +2,16 @@ package cmd
 import (
 "os"
 "encoding/json"
+"encoding/csv"
 "fmt"
 "strings"
 //"errors"
 )
+var (
+validOutputFormats = []string {"json", "csv", "quiet", "table",}
+
+)
+
 func exitWithStdErrMsg (message string) {
 	messageStdErr (message)
 	os.Exit(1)
@@ -28,6 +34,22 @@ func printTable(headers []columnDef , content [][]string ){
 	printTableHeaders (headers)
 	printContent(headers, content)
 }
+func printCsv(headers []columnDef , content [][]string ){
+	writer := csv.NewWriter(os.Stdout)
+	writer.Write(columnDefsToString(headers))
+	if err:=writer.WriteAll(content); err != nil {
+		exitWithErr(err)
+	}
+}
+
+func columnDefsToString(headers []columnDef) []string { 
+	rowToPrint := make([]string, 0)
+	for _, header := range headers {
+		rowToPrint = append(rowToPrint, header.Title)
+	}
+	return rowToPrint
+}
+
 func printContent (headers []columnDef, content [][]string) {
 	for _, row := range content {
 		rowToPrint := make([]string, 0)
@@ -55,4 +77,12 @@ func abbreviate(toAbbreviate string, maxLen int) string {
         return toAbbreviate
 }
 
+func validateOutputFormatExit (toTest outputFmt) {
+	if !validateOutputFormat(toTest) {
+		exitWithStdErrMsg("Invalid outputFormat argument: must be one of: " + strings.Join(validOutputFormats,","))
+	}
+}
 
+func validateOutputFormat (toTest outputFmt) bool {
+	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
+}

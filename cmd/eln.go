@@ -20,21 +20,35 @@ import (
 	"os"
 	"github.com/spf13/cobra"
 )
+type outputFmt string
 
-var isQuiet bool
-var isVerbose bool
-var outputFormat string
+func (ft outputFmt) isJson () bool {
+	return string(ft) == "json";
+}
+func (ft outputFmt) isCsv () bool {
+	return ft == "csv";
+}
+func (ft outputFmt) isTab () bool {
+	return ft == "table";
+}
+func (ft outputFmt) isQuiet () bool {
+	return ft == "quiet";
+}
+
+var outputFormatArg string
+var outputFormat outputFmt
 // elnCmd represents the eln command
 var elnCmd = &cobra.Command{
 	Use:   "eln",
 	Short: "Top-level command to work with RSpace ELN",
 	Long: ` Run rspace eln --help to see all the possible commands.
 	`,
-	Args: cobra.MinimumNArgs(1),
+	Args:   cobra.MinimumNArgs(1) ,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, "Requires a subcommand")
 	},
 }
+
 
 func init() {
 	rootCmd.AddCommand(elnCmd)
@@ -45,8 +59,7 @@ func init() {
 	// and all subcommands, e.g.:
 //	 elnCmd.PersistentFlags().BoolVarP(&isQuiet, "quiet", "q", false, "Quiet output")
 //	 elnCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Verbose")
-	 elnCmd.PersistentFlags().StringVarP(&outputFormat, "outputFormat", "f", "table", "Output format: 1 of 'json','table', 'csv' or 'quiet' ")
-
+	 elnCmd.PersistentFlags().StringVarP(&outputFormatArg, "outputFormat", "f", "table", "Output format: 1 of 'json','table', 'csv' or 'quiet' ")
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// elnCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/spf13/cobra"
 	"rspace"
 	"strconv"
@@ -33,8 +32,10 @@ var createFolderCmd = &cobra.Command{
 	  create-folder --name foldername --folder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
+		outputFormat = outputFmt(outputFormatArg)
+		validateOutputFormatExit (outputFormat)
 		post := rspace.FolderPost{IsNotebook:false,}
-		doCreateFolder(foldername, parentFolder, post)	
+		doCreateFolder(foldername, parentFolder, post)
 	},
 }
 
@@ -55,21 +56,26 @@ func doCreateFolder (foldername string, parentFolder string, post rspace.FolderP
 		if err != nil {
 			exitWithErr(err)
 		}
-		if isQuiet {
-			fmt.Println(got.Id)
-		} else if isVerbose{
+		if outputFormat.isJson()  {
 			fmt.Println(prettyMarshal(got))
-		} else {
+		} else if outputFormat.isTab() || outputFormat.isCsv() {
 			folderToTable(got)
+		} else if outputFormat.isQuiet(){
+			fmt.Println(got.Id)
+		} else {
+			fmt.Println("?" + string(outputFormat))
 		}
-
 }
 func folderToTable(folder *rspace.Folder) {
 	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, columnDef{"ParentFolderId",15}, columnDef{"Created",24}}
 	data := []string {strconv.Itoa(folder.Id),folder.GlobalId, folder.Name, strconv.Itoa(folder.ParentFolderId), folder.Created}
 	rows := make([][]string, 0)
 	rows = append(rows, data)
-	printTable(headers, rows)
+	if outputFormat.isCsv() {
+		printCsv(headers, rows)
+	} else {
+		printTable(headers, rows)
+	}
 }
 func init() {
 	elnCmd.AddCommand(createFolderCmd)

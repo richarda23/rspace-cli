@@ -60,10 +60,17 @@ func doCreateFolder (foldername string, parentFolder string, post rspace.FolderP
 		} else if isVerbose{
 			fmt.Println(prettyMarshal(got))
 		} else {
-			fmt.Println(got.GlobalId)
+			folderToTable(got)
 		}
-}
 
+}
+func folderToTable(folder *rspace.Folder) {
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, columnDef{"ParentFolderId",15}, columnDef{"Created",24}}
+	data := []string {strconv.Itoa(folder.Id),folder.GlobalId, folder.Name, strconv.Itoa(folder.ParentFolderId), folder.Created}
+	rows := make([][]string, 0)
+	rows = append(rows, data)
+	printTable(headers, rows)
+}
 func init() {
 	elnCmd.AddCommand(createFolderCmd)
 	 createFolderCmd.Flags().StringVarP(&foldername, "name", "n", "", "A name for the folder")

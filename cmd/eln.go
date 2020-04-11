@@ -43,8 +43,8 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	 elnCmd.PersistentFlags().BoolVarP(&isQuiet, "quiet", "q", false, "Quiet output")
-	 elnCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Verbose")
+//	 elnCmd.PersistentFlags().BoolVarP(&isQuiet, "quiet", "q", false, "Quiet output")
+//	 elnCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Verbose")
 	 elnCmd.PersistentFlags().StringVarP(&outputFormat, "outputFormat", "f", "table", "Output format: 1 of 'json','table', 'csv' or 'quiet' ")
 
 	// Cobra supports local flags which will only run when this command

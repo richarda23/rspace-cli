@@ -15,6 +15,8 @@ const (
 var (
 	validOutputFormats = []string {"json", "csv", "quiet", "table",}
 	validTreeFilters = []string {"document", "notebook", "folder",}
+	validSortOrders = []string{"asc", "desc"}
+	validRecordOrders = []string {"name", "created", "lastModified"}
 	outputFormat outputFmt
 )
 type outputFmt string

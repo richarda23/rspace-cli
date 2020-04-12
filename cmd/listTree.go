@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"rspace"
 	"github.com/spf13/cobra"
 	"strconv"
@@ -32,13 +31,24 @@ var listTreeCmd = &cobra.Command{
 	Long: `Lists the content of the specified folder, or the home folder if no folder ID is set`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("listTree called")
 		context:=initialiseContext()  
-		cfg := rspace.NewRecordListingConfig()
+		cfg:=configurePagination()
 		doListTree(context, cfg)
 	},
 }
-
+func configurePagination () rspace.RecordListingConfig{
+	cfg := rspace.NewRecordListingConfig()
+	if len(sortOrderArg)  > 0 && validateArrayContains(validSortOrders, []string{sortOrderArg}) {
+		cfg.SortOrder = sortOrderArg
+	}
+	if len(orderByArg)  > 0 && validateArrayContains(validRecordOrders, []string{orderByArg}) {
+		cfg.OrderBy = orderByArg
+	}
+	if pageSizeArg > 0  {
+		cfg.PageSize = pageSizeArg
+	}
+	return cfg
+}
 func doListTree (ctx *Context, cfg rspace.RecordListingConfig) {
 	var filters =  make([]string, 0)
 	if len (treeFilterArg) > 0 {
@@ -92,4 +102,7 @@ func init() {
 	// is called directly, e.g.:
 	 listTreeCmd.Flags().IntVar(&folderId, "folder",  0, "The id of the folder or notebook to list")
 	 listTreeCmd.Flags().StringVar(&treeFilterArg, "filter",  "", "Restrict results to 1 or more of: " + strings.Join(validTreeFilters, ","))
+	 listTreeCmd.Flags().StringVar(&sortOrderArg, "sortOrder",  "desc", "'asc' or 'desc'")
+	 listTreeCmd.Flags().StringVar(&orderByArg, "orderBy",  "lastModified", "orders results by 'name', 'created' or 'lastModified'")
+	 listTreeCmd.Flags().IntVar(&pageSizeArg, "maxResults",  20, "Maximum number of results to retrieve")
 }

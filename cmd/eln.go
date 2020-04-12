@@ -22,6 +22,9 @@ import (
 )
 var outputFormatArg string
 var outFileArg string
+var sortOrderArg string
+var orderByArg string
+var pageSizeArg int
 // elnCmd represents the eln command
 var elnCmd = &cobra.Command{
 	Use:   "eln",

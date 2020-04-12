@@ -30,8 +30,6 @@ var createNotebookCmd = &cobra.Command{
 	  create-notebook --name nbname --infolder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		outputFormat = outputFmt(outputFormatArg)
-		validateOutputFormatExit (outputFormat)
 		post := rspace.FolderPost{IsNotebook:true,}
 		doCreateFolder(notebookName, parentfolder, post)
 	},

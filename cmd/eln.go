@@ -20,23 +20,8 @@ import (
 	"os"
 	"github.com/spf13/cobra"
 )
-type outputFmt string
-
-func (ft outputFmt) isJson () bool {
-	return string(ft) == "json";
-}
-func (ft outputFmt) isCsv () bool {
-	return ft == "csv";
-}
-func (ft outputFmt) isTab () bool {
-	return ft == "table";
-}
-func (ft outputFmt) isQuiet () bool {
-	return ft == "quiet";
-}
-
 var outputFormatArg string
-var outputFormat outputFmt
+var outFileArg string
 // elnCmd represents the eln command
 var elnCmd = &cobra.Command{
 	Use:   "eln",
@@ -60,6 +45,7 @@ func init() {
 //	 elnCmd.PersistentFlags().BoolVarP(&isQuiet, "quiet", "q", false, "Quiet output")
 //	 elnCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Verbose")
 	 elnCmd.PersistentFlags().StringVarP(&outputFormatArg, "outputFormat", "f", "table", "Output format: 1 of 'json','table', 'csv' or 'quiet' ")
+	 elnCmd.PersistentFlags().StringVarP(&outFileArg, "outFile", "o", "", "Output file for program output")
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// elnCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

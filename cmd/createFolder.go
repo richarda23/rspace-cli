@@ -32,8 +32,6 @@ var createFolderCmd = &cobra.Command{
 	  create-folder --name foldername --folder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		outputFormat = outputFmt(outputFormatArg)
-		validateOutputFormatExit (outputFormat)
 		post := rspace.FolderPost{IsNotebook:false,}
 		doCreateFolder(foldername, parentFolder, post)
 	},

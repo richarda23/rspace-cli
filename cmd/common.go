@@ -5,12 +5,14 @@ import (
 "encoding/csv"
 "fmt"
 "strings"
+"io"
 //"errors"
 )
-var (
-validOutputFormats = []string {"json", "csv", "quiet", "table",}
 
-)
+func writeOutput(writer *io.Writer, toWrite string){
+	
+}
+
 
 func exitWithStdErrMsg (message string) {
 	messageStdErr (message)
@@ -77,15 +79,6 @@ func abbreviate(toAbbreviate string, maxLen int) string {
         return toAbbreviate
 }
 
-func validateOutputFormatExit (toTest outputFmt) {
-	if !validateOutputFormat(toTest) {
-		exitWithStdErrMsg("Invalid outputFormat argument: must be one of: " + strings.Join(validOutputFormats,","))
-	}
-}
-
-func validateOutputFormat (toTest outputFmt) bool {
-	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
-}
 
 type identifiable struct {
 	 Id string

@@ -27,8 +27,12 @@ var statusCmd = &cobra.Command{
 	Long: "Gets version and current status of RSpace",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("status called")
-		context:=initialiseContext()  
-		fmt.Println(context.WebClient.DocumentS.GetStatus())
+		context:=initialiseContext()
+		got, err := context.WebClient.DocumentS.GetStatus()
+		if err != nil {
+			exitWithErr(err)
+		}
+		writeOutput(context.Writer, got.Message)
 	},
 }
 

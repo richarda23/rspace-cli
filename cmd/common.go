@@ -9,8 +9,8 @@ import (
 //"errors"
 )
 
-func writeOutput(writer *io.Writer, toWrite string){
-	
+func writeOutput(writer io.Writer, toWrite string){
+	fmt.Fprintln(writer, toWrite)
 }
 
 

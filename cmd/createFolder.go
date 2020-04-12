@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 	"rspace"
 	"strconv"
@@ -53,13 +52,13 @@ func doCreateFolder (context *Context, foldername string, parentFolder string, p
 			exitWithErr(err)
 		}
 		if context.Format.isJson()  {
-			fmt.Println(prettyMarshal(got))
+			writeOutput(context.Writer, prettyMarshal(got))
 		} else if context.Format.isTab() || context.Format.isCsv() {
 			folderToTable(context, got)
 		} else if context.Format.isQuiet(){
-			fmt.Println(got.Id)
+			writeOutput(context.Writer,strconv.Itoa(got.Id))
 		} else {
-			fmt.Println("?" + string(outputFormat))
+			writeOutput(context.Writer,"unknown format")
 		}
 }
 func folderToTable(context *Context, folder *rspace.Folder) {

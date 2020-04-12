@@ -86,3 +86,13 @@ func validateOutputFormatExit (toTest outputFmt) {
 func validateOutputFormat (toTest outputFmt) bool {
 	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
 }
+
+type identifiable struct {
+	 Id string
+}
+//
+func printIds(source []identifiable) {
+	for _, item := range source {
+		fmt.Println(item.Id)
+	}
+}

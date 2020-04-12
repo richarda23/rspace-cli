@@ -10,7 +10,6 @@ import (
 )
 
 func writeOutput(writer io.Writer, toWrite string){
-	fmt.Fprintln(writer, toWrite)
 }
 
 
@@ -32,12 +31,12 @@ type columnDef struct {
 	Title string
 	Width int
 }
-func printTable(headers []columnDef , content [][]string ){
-	printTableHeaders (headers)
-	printContent(headers, content)
+func printTable(ctx *Context, headers []columnDef , content [][]string ){
+	printTableHeaders (ctx, headers)
+	printContent(ctx, headers, content)
 }
-func printCsv(headers []columnDef , content [][]string ){
-	writer := csv.NewWriter(os.Stdout)
+func printCsv(ctx *Context, headers []columnDef , content [][]string ){
+	writer := csv.NewWriter(ctx.Writer)
 	writer.Write(columnDefsToString(headers))
 	if err:=writer.WriteAll(content); err != nil {
 		exitWithErr(err)
@@ -52,7 +51,7 @@ func columnDefsToString(headers []columnDef) []string {
 	return rowToPrint
 }
 
-func printContent (headers []columnDef, content [][]string) {
+func printContent (ctx *Context, headers []columnDef, content [][]string) {
 	for _, row := range content {
 		rowToPrint := make([]string, 0)
 		for i, cell := range row {
@@ -60,17 +59,17 @@ func printContent (headers []columnDef, content [][]string) {
 			toPrint = fmt.Sprintf("%-[1]*s", headers[i].Width, toPrint)
 			rowToPrint = append(rowToPrint, toPrint)
 		}
-		fmt.Println(strings.Join(rowToPrint, "\t"))
+		ctx.write(strings.Join(rowToPrint, "\t"))
 	}
 }
-func printTableHeaders (headers []columnDef) {
+func printTableHeaders (ctx *Context, headers []columnDef) {
 	headersToPrint := make([]string, 0)
 	for _, header := range headers {
 		toPrint:= abbreviate(header.Title, header.Width)
 		toPrint = fmt.Sprintf("%-[1]*s", header.Width, toPrint)
 		headersToPrint = append(headersToPrint, toPrint)
 	}
-	fmt.Println(strings.Join(headersToPrint, "\t"))
+	ctx.write(strings.Join(headersToPrint, "\t"))
 }
 func abbreviate(toAbbreviate string, maxLen int) string {
         if len(toAbbreviate) > maxLen {
@@ -84,8 +83,8 @@ type identifiable struct {
 	 Id string
 }
 //
-func printIds(source []identifiable) {
+func printIds(ctx *Context,  source []identifiable) {
 	for _, item := range source {
-		fmt.Println(item.Id)
+		ctx.write(item.Id)
 	}
 }

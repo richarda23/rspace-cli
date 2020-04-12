@@ -14,6 +14,7 @@ const (
 )
 var (
 	validOutputFormats = []string {"json", "csv", "quiet", "table",}
+	validTreeFilters = []string {"document", "notebook", "folder",}
 	outputFormat outputFmt
 )
 type outputFmt string
@@ -37,22 +38,56 @@ type Context struct {
  Writer io.Writer
  Format outputFmt
 }
+func (ctx *Context) write (toWrite string) {
+	fmt.Fprintln(ctx.Writer, toWrite)
+}
 
 func initialiseContext () *Context {
+	_validateFlagArgs ()
+	outputFormat = outputFmt(outputFormatArg)
 	rc := Context{}
 	rc.WebClient = initWebClient()
 	rc.Writer = initOutputWriter(outFileArg)
-	outputFormat = outputFmt(outputFormatArg)
-	validateOutputFormatExit (outputFormat)
 	rc.Format = outputFormat
 	return &rc
+}
+// exits with error if validation fails
+func _validateFlagArgs () {
+	outputFormat = outputFmt(outputFormatArg)
+	validateOutputFormatExit (outputFormat)
+	validateTreeFilterExit(treeFilterArg) 
+}
+func validateTreeFilterExit (treeFilterArg string) []string {
+	if len (treeFilterArg) == 0 {
+		return make([]string, 0)
+	}
+	rc := strings.Split(treeFilterArg,",")
+
+	if !validateArrayContains(validTreeFilters, rc) {
+		exitWithStdErrMsg("Invalid tree filter, must be comma-separated list of 1 more terms: " + strings.Join(validTreeFilters,","))
+		return nil
+	}
+	return rc
 }
 func validateOutputFormatExit (toTest outputFmt) {
 	if !validateOutputFormat(toTest) {
 		exitWithStdErrMsg("Invalid outputFormat argument: must be one of: " + strings.Join(validOutputFormats,","))
 	}
 }
-
+func validateArrayContains(validTerms []string, toTest []string) bool {
+	for _, term := range toTest {
+		seen := false
+		for _, v := range validTerms {
+			if v == term {
+				seen= true
+			}
+		}
+		if !seen {
+			return false
+		}
+	}
+	return true
+}
 func validateOutputFormat (toTest outputFmt) bool {
 	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
 }

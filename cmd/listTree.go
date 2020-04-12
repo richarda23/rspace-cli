@@ -20,9 +20,11 @@ import (
 	"rspace"
 	"github.com/spf13/cobra"
 	"strconv"
+	"strings"
 )
 
 var folderId int 
+var treeFilterArg string
 // listTreeCmd represents the listTree command
 var listTreeCmd = &cobra.Command{
 	Use:   "listTree",
@@ -38,14 +40,18 @@ var listTreeCmd = &cobra.Command{
 }
 
 func doListTree (ctx *Context, cfg rspace.RecordListingConfig) {
-	folderList, err := ctx.WebClient.FolderTree(cfg, folderId,make ([]string,0)) 
+	var filters =  make([]string, 0)
+	if len (treeFilterArg) > 0 {
+		filters = strings.Split(treeFilterArg,",")
+	}
+	folderList, err := ctx.WebClient.FolderTree(cfg, folderId, filters) 
 	if err != nil {
 		exitWithErr(err)
 	}
 	if ctx.Format.isJson() {
-		fmt.Println(prettyMarshal(folderList))
+		ctx.write(prettyMarshal(folderList))
 	} else if ctx.Format.isQuiet() {
-		printIds(toIdentifiable(folderList))
+		printIds(ctx, toIdentifiable(folderList))
 	} else {
 		listToTable(ctx, folderList)
 	}
@@ -67,9 +73,9 @@ func listToTable(ctx *Context, results *rspace.FolderList) {
 		rows = append(rows, data)
 	}
 	if ctx.Format.isCsv() {
-		printCsv(headers, rows)
+		printCsv(ctx, headers, rows)
 	} else {
-		printTable(headers, rows)
+		printTable(ctx, headers, rows)
 	}
 }
 
@@ -85,4 +91,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	 listTreeCmd.Flags().IntVar(&folderId, "folder",  0, "The id of the folder or notebook to list")
+	 listTreeCmd.Flags().StringVar(&treeFilterArg, "filter",  "", "Restrict results to 1 or more of: " + strings.Join(validTreeFilters, ","))
 }

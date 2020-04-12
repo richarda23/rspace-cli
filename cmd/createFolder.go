@@ -31,12 +31,12 @@ var createFolderCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		post := rspace.FolderPost{IsNotebook:false,}
-		context:=initialiseContext()  
-		doCreateFolder(context, foldername, parentFolder, post)
+		ctx:=initialiseContext()  
+		doCreateFolder(ctx, foldername, parentFolder, post)
 	},
 }
 
-func doCreateFolder (context *Context, foldername string, parentFolder string, post rspace.FolderPost) {
+func doCreateFolder (ctx *Context, foldername string, parentFolder string, post rspace.FolderPost) {
 		if len(foldername) > 0 {
 			post.Name=foldername
 		}
@@ -47,29 +47,29 @@ func doCreateFolder (context *Context, foldername string, parentFolder string, p
 			}
 			post.ParentFolderId=id
 		}
-		got, err := context.WebClient.FolderNew(&post)
+		got, err := ctx.WebClient.FolderNew(&post)
 		if err != nil {
 			exitWithErr(err)
 		}
-		if context.Format.isJson()  {
-			writeOutput(context.Writer, prettyMarshal(got))
-		} else if context.Format.isTab() || context.Format.isCsv() {
-			folderToTable(context, got)
-		} else if context.Format.isQuiet(){
-			writeOutput(context.Writer,strconv.Itoa(got.Id))
+		if ctx.Format.isJson()  {
+			ctx.write(prettyMarshal(got))
+		} else if ctx.Format.isTab() || ctx.Format.isCsv() {
+			folderToTable(ctx, got)
+		} else if ctx.Format.isQuiet(){
+			ctx.write(strconv.Itoa(got.Id))
 		} else {
-			writeOutput(context.Writer,"unknown format")
+			ctx.write("unknown format")
 		}
 }
-func folderToTable(context *Context, folder *rspace.Folder) {
+func folderToTable(ctx *Context, folder *rspace.Folder) {
 	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, columnDef{"ParentFolderId",15}, columnDef{"Created",24}}
 	data := []string {strconv.Itoa(folder.Id),folder.GlobalId, folder.Name, strconv.Itoa(folder.ParentFolderId), folder.Created}
 	rows := make([][]string, 0)
 	rows = append(rows, data)
-	if context.Format.isCsv() {
-		printCsv(headers, rows)
+	if ctx.Format.isCsv() {
+		printCsv(ctx, headers, rows)
 	} else {
-		printTable(headers, rows)
+		printTable(ctx, headers, rows)
 	}
 }
 func init() {

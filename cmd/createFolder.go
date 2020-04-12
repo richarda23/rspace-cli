@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	"rspace"
 	"strconv"
-	"os"
 )
 var foldername string
 var parentFolder string
@@ -33,43 +32,42 @@ var createFolderCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		post := rspace.FolderPost{IsNotebook:false,}
-		doCreateFolder(foldername, parentFolder, post)
+		context:=initialiseContext()  
+		doCreateFolder(context, foldername, parentFolder, post)
 	},
 }
 
-func doCreateFolder (foldername string, parentFolder string, post rspace.FolderPost) {
+func doCreateFolder (context *Context, foldername string, parentFolder string, post rspace.FolderPost) {
 		if len(foldername) > 0 {
 			post.Name=foldername
 		}
 		if len(parentFolder) > 0 {
 			id,err :=strconv.Atoi(parentFolder)
 			if err != nil {
-				fmt.Println("Please supply a numeric folder id for the parent folder")
-				os.Exit(1)
+				exitWithStdErrMsg("Please supply a numeric folder id for the parent folder")
 			}
 			post.ParentFolderId=id
 		}
-		webClient:=setup()
-		got, err := webClient.FolderNew(&post)
+		got, err := context.WebClient.FolderNew(&post)
 		if err != nil {
 			exitWithErr(err)
 		}
-		if outputFormat.isJson()  {
+		if context.Format.isJson()  {
 			fmt.Println(prettyMarshal(got))
-		} else if outputFormat.isTab() || outputFormat.isCsv() {
-			folderToTable(got)
-		} else if outputFormat.isQuiet(){
+		} else if context.Format.isTab() || context.Format.isCsv() {
+			folderToTable(context, got)
+		} else if context.Format.isQuiet(){
 			fmt.Println(got.Id)
 		} else {
 			fmt.Println("?" + string(outputFormat))
 		}
 }
-func folderToTable(folder *rspace.Folder) {
+func folderToTable(context *Context, folder *rspace.Folder) {
 	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, columnDef{"ParentFolderId",15}, columnDef{"Created",24}}
 	data := []string {strconv.Itoa(folder.Id),folder.GlobalId, folder.Name, strconv.Itoa(folder.ParentFolderId), folder.Created}
 	rows := make([][]string, 0)
 	rows = append(rows, data)
-	if outputFormat.isCsv() {
+	if context.Format.isCsv() {
 		printCsv(headers, rows)
 	} else {
 		printTable(headers, rows)

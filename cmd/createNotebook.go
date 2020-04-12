@@ -31,7 +31,8 @@ var createNotebookCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		post := rspace.FolderPost{IsNotebook:true,}
-		doCreateFolder(notebookName, parentfolder, post)
+		context:=initialiseContext()  
+		doCreateFolder(context, notebookName, parentfolder, post)
 	},
 }
 

@@ -30,8 +30,8 @@ var listDocumentsCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("listDocuments called")
-		client := setup()
-		fmt.Println(client.DocumentS.GetStatus())
+		client := initialiseContext()
+		fmt.Println(client.WebClient.DocumentS.GetStatus())
 	},
 }
 

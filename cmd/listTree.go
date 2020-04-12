@@ -31,25 +31,23 @@ var listTreeCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("listTree called")
-		outputFormat = outputFmt(outputFormatArg)
-		validateOutputFormatExit (outputFormat)
+		context:=initialiseContext()  
 		cfg := rspace.NewRecordListingConfig()
-		doListTree(cfg)
+		doListTree(context, cfg)
 	},
 }
 
-func doListTree (cfg rspace.RecordListingConfig) {
-	webClient:=setup()
-	folderList, err := webClient.FolderTree(cfg, folderId,make ([]string,0)) 
+func doListTree (ctx *Context, cfg rspace.RecordListingConfig) {
+	folderList, err := ctx.WebClient.FolderTree(cfg, folderId,make ([]string,0)) 
 	if err != nil {
 		exitWithErr(err)
 	}
-	if outputFormat.isJson() {
+	if ctx.Format.isJson() {
 		fmt.Println(prettyMarshal(folderList))
-	} else if outputFormat.isQuiet() {
+	} else if ctx.Format.isQuiet() {
 		printIds(toIdentifiable(folderList))
 	} else {
-		listToTable(folderList)
+		listToTable(ctx, folderList)
 	}
 }
 func toIdentifiable (results *rspace.FolderList) []identifiable {
@@ -60,7 +58,7 @@ func toIdentifiable (results *rspace.FolderList) []identifiable {
 	return rows
 }
 
-func listToTable(results *rspace.FolderList) {
+func listToTable(ctx *Context, results *rspace.FolderList) {
 	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25},columnDef{"Type", 9},  columnDef{"Created",24},columnDef{"Last Modified",24}}
 
 	rows := make([][]string, 0)
@@ -68,7 +66,7 @@ func listToTable(results *rspace.FolderList) {
 		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created,res.LastModified}
 		rows = append(rows, data)
 	}
-	if outputFormat.isCsv() {
+	if ctx.Format.isCsv() {
 		printCsv(headers, rows)
 	} else {
 		printTable(headers, rows)

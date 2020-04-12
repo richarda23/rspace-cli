@@ -40,7 +40,7 @@ type Context struct {
 
 func initialiseContext () *Context {
 	rc := Context{}
-	rc.WebClient = setup()
+	rc.WebClient = initWebClient()
 	rc.Writer = initOutputWriter(outFileArg)
 	outputFormat = outputFmt(outputFormatArg)
 	validateOutputFormatExit (outputFormat)
@@ -70,7 +70,7 @@ func initOutputWriter(outfile string) io.Writer {
 	return nil
 }
 
-func setup () *rspace.RsWebClient {
+func initWebClient () *rspace.RsWebClient {
 	if len(getenv(BASE_URL_ENV_NAME)) ==0 {
 		fmt.Println("No URL for RSpace  detected")
 		os.Exit(1)

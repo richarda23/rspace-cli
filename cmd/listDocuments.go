@@ -18,9 +18,13 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"rspace"
+	"strconv"
 )
 var Quiet bool
 var PageSize int
+var dOrderByArg, dSortArg string
+var dPageSizeArg int
 
 // listDocumentsCmd represents the listDocuments command
 var listDocumentsCmd = &cobra.Command{
@@ -30,16 +34,49 @@ var listDocumentsCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("listDocuments called")
-		client := initialiseContext()
-		fmt.Println(client.WebClient.DocumentS.GetStatus())
+		context := initialiseContext()  
+		cfg := configurePagination()
+		doListDocs(context, cfg)
 	},
 }
+func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
+	doclist, err := ctx.WebClient.DocumentS.Documents(cfg )
+	if err != nil {
+		exitWithErr(err)
+	}
+	if ctx.Format.isJson() {
+		ctx.write(prettyMarshal(doclist))
+	} else if ctx.Format.isQuiet() {
+		printIds(ctx, toIdentifiableDoc(doclist))
+	} else {
+		listToDocTable(ctx, doclist)
+	}
+}
+func listToDocTable(ctx *Context, results *rspace.DocumentList) {
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25},  columnDef{"Created",24},columnDef{"Last Modified",24}}
 
+	rows := make([][]string, 0)
+	for _, res := range results.Documents {
+		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,   res.Created,res.LastModified}
+		rows = append(rows, data)
+	}
+	if ctx.Format.isCsv() {
+		printCsv(ctx, headers, rows)
+	} else {
+		printTable(ctx, headers, rows)
+	}
+}
+func toIdentifiableDoc (results *rspace.DocumentList) []identifiable {
+	rows := make([]identifiable, 0)
+	for _, res := range results.Documents {
+		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
+	}
+	return rows
+}
 func init() {
-	listDocumentsCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")
-	listDocumentsCmd.Flags().IntVarP(&PageSize, "page-size", "p", 20, "page size")
-	rootCmd.AddCommand(listDocumentsCmd)
+	elnCmd.AddCommand(listDocumentsCmd)
 
+	initPaginationFromArgs(listDocumentsCmd)
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

@@ -6,6 +6,7 @@ import (
 "os"
 "io"
 "strings"
+"github.com/spf13/cobra"
 
 )
 const (
@@ -123,4 +124,10 @@ func initWebClient () *rspace.RsWebClient {
 }
 func getenv(envname string) string {
 	return os.Getenv(envname)
+}
+// common setup for a paginating command
+func initPaginationFromArgs (cmd *cobra.Command) {
+	 cmd.Flags().StringVar(&sortOrderArg, "sortOrder",  "desc", "'asc' or 'desc'")
+	 cmd.Flags().StringVar(&orderByArg, "orderBy",  "lastModified", "orders results by 'name', 'created' or 'lastModified'")
+	 cmd.Flags().IntVar(&pageSizeArg, "maxResults",  20, "Maximum number of results to retrieve")
 }

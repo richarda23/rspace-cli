@@ -32,7 +32,7 @@ var statusCmd = &cobra.Command{
 		if err != nil {
 			exitWithErr(err)
 		}
-		writeOutput(context.Writer, got.Message)
+		context.write(got.Message)
 	},
 }
 

@@ -38,23 +38,26 @@ var listDocumentsCmd = &cobra.Command{
 		doListDocs(context, cfg)
 	},
 }
+
 func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
-	var doclist *rspace.DocumentList
+	var docList *rspace.DocumentList
 	var err error
 	if len(SearchQuery) > 0 {
-		doclist,err=ctx.WebClient.DocumentS.SearchDocuments(cfg, SearchQuery)
+		docList,err=ctx.WebClient.DocumentS.SearchDocuments(cfg, SearchQuery)
 	} else {
-		doclist, err = ctx.WebClient.DocumentS.Documents(cfg )
+		docList, err = ctx.WebClient.DocumentS.Documents(cfg )
 	}
+
+	
 	if err != nil {
 		exitWithErr(err)
 	}
 	if ctx.Format.isJson() {
-		ctx.write(prettyMarshal(doclist))
+		ctx.write(prettyMarshal(docList))
 	} else if ctx.Format.isQuiet() {
-		printIds(ctx, toIdentifiableDoc(doclist))
+		printIds(ctx, toIdentifiableDoc(docList))
 	} else {
-		listToDocTable(ctx, doclist)
+		listToDocTable(ctx, docList)
 	}
 }
 func listToDocTable(ctx *Context, results *rspace.DocumentList) {

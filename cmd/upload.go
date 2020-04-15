@@ -19,14 +19,30 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"io/ioutil"
 	"github.com/spf13/cobra"
+	"regexp"
 )
-
+var recursiveFlag bool = false
 // uploadCmd represents the upload command
  var uploadCmd = &cobra.Command{
 	Use:   "upload",
-	Short: "Upload one or more files",
-	Long: ``,
+	Short: "Upload one or 'more files",
+	Long: ` Uepload files. Add files and folders to the command line. 
+	By default, folder contents aren't uploaded recursively.
+	
+	Use the --recursive flag to upload all folder contents.
+	
+	The folder structure is flattened in RSpace, files are uploaded to the target folder.
+	
+	If not set, files will be uploaded to the appropriate 'Api Inbox' Gallery folders,
+	depending on the file type. 
+
+	Files or folder names starting with '.' are ignored. But you can use '.' as an argument
+	to upload the current folder, e.g.
+
+	    rspace eln upload . --recursive
+	`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := initialiseContext()
@@ -36,7 +52,8 @@ import (
 
 func uploadArgs (ctx *Context, args[]string ) {
 	for _, filePath := range args {
-		
+		var err error
+		filePath, err = filepath.Abs(filePath)
 		fileInfo, err := os.Stat(filePath)
 		if err != nil {
 			exitWithErr(err)
@@ -45,31 +62,58 @@ func uploadArgs (ctx *Context, args[]string ) {
 		if fileInfo.IsDir() {
 			messageStdErr("Scanning for files in " +  fileInfo.Name())
 			var filesInDir []string
-			filepath.Walk(filePath, visit(&filesInDir) )
-			messageStdErr(fmt.Sprintf("Found %d files to upload in %s",
-				 len(filesInDir), fileInfo.Name()))
-			for _, fileInDir := range filesInDir {
-				postFile(ctx, fileInDir);
+			if recursiveFlag {
+				filepath.Walk(filePath, visit(&filesInDir) )
+			} else {
+				readSingleDir(filePath, &filesInDir)
 			}
+			messageStdErr(fmt.Sprintf("Found %d files to upload in %s",
+			len(filesInDir), fileInfo.Name()))
+			
+			for _, fileInDir := range filesInDir {
+					postFile(ctx, fileInDir);
+			}
+		}
+	}
+ }
+ // reads non . files from a single folder
+ func readSingleDir(filePath string, files *[]string) {
+
+	fileInfos,_:= ioutil.ReadDir(filePath)
+	for _,inf:=range fileInfos {
+		if !inf.IsDir() && !isDot(inf) {
+				*files = append(*files, filePath + string(os.PathSeparator) +inf.Name())
 		}
 	}
  }
 func visit (files *[]string) filepath.WalkFunc {
 	return func  (path string, info os.FileInfo, err error) error {
-		// don't recurse, ignore '.' files
-		if !info.IsDir() && info.Name()[0] != '.' {
-			fmt.Println(info.Name())
-			*files = append(*files, path)	
+		// always   ignore '.' folders, don't descend
+		messageStdErr("processing " + path)
+		if info.IsDir() && isDot(info) {
+			messageStdErr("Skipping .folder " + path)
+			return filepath.SkipDir
+		}
+		// always add non . files
+		if !info.IsDir() && !isDot(info) {
+			*files = append(*files, path)
+			return nil
 		}
 		return nil
 	}
 }
+func isDot(info os.FileInfo) bool {
+	//return filepath.Base(info.Name())[0] == '.'
+	match,_ :=  regexp.MatchString("^\\.[A-Za-z0-9\\-_]+", info.Name())
+	return match
+}
 func postFile (ctx *Context, filePath string){
 	file, err := ctx.WebClient.FileS.UploadFile(filePath)
 	if err != nil {
-		exitWithErr(err)
+		// other files might upload OK, so don't exit here
+		messageStdErr(err.Error())
 	}
-	fmt.Println(prettyMarshal(file))
+	fmt.Println(file.Name)
 }
 func init() {
 	elnCmd.AddCommand(uploadCmd)
@@ -78,7 +122,8 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// uploadCmd.PersistentFlags().String("foo", "", "A help for foo")
+	uploadCmd.PersistentFlags().BoolVar(&recursiveFlag, "recursive", false,
+	 "If uploading a folder, uploads contents recursively.")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

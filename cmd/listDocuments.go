@@ -23,7 +23,7 @@ import (
 )
 var Quiet bool
 var PageSize int
-var SearchQuery string
+var searchQuery string
 
 // listDocumentsCmd represents the listDocuments command
 var listDocumentsCmd = &cobra.Command{
@@ -42,10 +42,10 @@ var listDocumentsCmd = &cobra.Command{
 func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 	var docList *rspace.DocumentList
 	var err error
-	if len(SearchQuery) > 0 {
-		docList,err=ctx.WebClient.DocumentS.SearchDocuments(cfg, SearchQuery)
+	if len(searchQuery) > 0 {
+		docList,err=ctx.WebClient.SearchDocuments(cfg, searchQuery)
 	} else {
-		docList, err = ctx.WebClient.DocumentS.Documents(cfg )
+		docList, err = ctx.WebClient.Documents(cfg )
 	}
 
 	
@@ -89,7 +89,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	listDocumentsCmd.PersistentFlags().StringVar(&SearchQuery, "query", "", "Search query term")
+	listDocumentsCmd.PersistentFlags().StringVar(&searchQuery, "query", "", "Search query term")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

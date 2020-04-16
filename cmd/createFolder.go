@@ -20,8 +20,10 @@ import (
 	"rspace"
 	"strconv"
 )
+
 var foldername string
 var parentFolder string
+
 // createNotebookCmd represents the createNotebook command
 var createFolderCmd = &cobra.Command{
 	Use:   "createFolder",
@@ -30,40 +32,40 @@ var createFolderCmd = &cobra.Command{
 	  create-folder --name foldername --folder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		post := rspace.FolderPost{IsNotebook:false,}
-		ctx:=initialiseContext()  
+		post := rspace.FolderPost{IsNotebook: false}
+		ctx := initialiseContext()
 		doCreateFolder(ctx, foldername, parentFolder, post)
 	},
 }
 
-func doCreateFolder (ctx *Context, foldername string, parentFolder string, post rspace.FolderPost) {
-		if len(foldername) > 0 {
-			post.Name=foldername
-		}
-		if len(parentFolder) > 0 {
-			id,err :=strconv.Atoi(parentFolder)
-			if err != nil {
-				exitWithStdErrMsg("Please supply a numeric folder id for the parent folder")
-			}
-			post.ParentFolderId=id
-		}
-		got, err := ctx.WebClient.FolderNew(&post)
+func doCreateFolder(ctx *Context, foldername string, parentFolder string, post rspace.FolderPost) {
+	if len(foldername) > 0 {
+		post.Name = foldername
+	}
+	if len(parentFolder) > 0 {
+		id, err := strconv.Atoi(parentFolder)
 		if err != nil {
-			exitWithErr(err)
+			exitWithStdErrMsg("Please supply a numeric folder id for the parent folder")
 		}
-		if ctx.Format.isJson()  {
-			ctx.write(prettyMarshal(got))
-		} else if ctx.Format.isTab() || ctx.Format.isCsv() {
-			folderToTable(ctx, got)
-		} else if ctx.Format.isQuiet(){
-			ctx.write(strconv.Itoa(got.Id))
-		} else {
-			ctx.write("unknown format")
-		}
+		post.ParentFolderId = id
+	}
+	got, err := ctx.WebClient.FolderNew(&post)
+	if err != nil {
+		exitWithErr(err)
+	}
+	if ctx.Format.isJson() {
+		ctx.write(prettyMarshal(got))
+	} else if ctx.Format.isTab() || ctx.Format.isCsv() {
+		folderToTable(ctx, got)
+	} else if ctx.Format.isQuiet() {
+		ctx.write(strconv.Itoa(got.Id))
+	} else {
+		ctx.write("unknown format")
+	}
 }
 func folderToTable(ctx *Context, folder *rspace.Folder) {
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, columnDef{"ParentFolderId",15}, columnDef{"Created",24}}
-	data := []string {strconv.Itoa(folder.Id),folder.GlobalId, folder.Name, strconv.Itoa(folder.ParentFolderId), folder.Created}
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"GlobalId", 10}, columnDef{"Name", 25}, columnDef{"ParentFolderId", 15}, columnDef{"Created", 24}}
+	data := []string{strconv.Itoa(folder.Id), folder.GlobalId, folder.Name, strconv.Itoa(folder.ParentFolderId), folder.Created}
 	rows := make([][]string, 0)
 	rows = append(rows, data)
 	if ctx.Format.isCsv() {
@@ -74,6 +76,7 @@ func folderToTable(ctx *Context, folder *rspace.Folder) {
 }
 func init() {
 	elnCmd.AddCommand(createFolderCmd)
-	 createFolderCmd.Flags().StringVarP(&foldername, "name", "n", "", "A name for the folder")
-	 createFolderCmd.Flags().StringVarP(&parentFolder, "folder", "p", "", "An id for the folder that will contain the new folder")
+	createFolderCmd.Flags().StringVarP(&foldername, "name", "n", "", "A name for the folder")
+	createFolderCmd.Flags().StringVarP(&parentFolder, "folder", "p", "", "An id for the folder that will contain the new folder")
 }
+ 

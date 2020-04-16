@@ -108,7 +108,7 @@ func isDot(info os.FileInfo) bool {
 	return match
 }
 func postFile (ctx *Context, filePath string){
-	file, err := ctx.WebClient.FileS.UploadFile(filePath)
+	file, err := ctx.WebClient.UploadFile(filePath)
 	if err != nil {
 		// other files might upload OK, so don't exit here
 		messageStdErr(err.Error())

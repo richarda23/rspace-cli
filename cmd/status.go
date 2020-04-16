@@ -28,7 +28,7 @@ var statusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("status called")
 		context:=initialiseContext()
-		got, err := context.WebClient.DocumentS.GetStatus()
+		got, err := context.WebClient.Status()
 		if err != nil {
 			exitWithErr(err)
 		}

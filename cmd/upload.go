@@ -17,11 +17,13 @@ package cmd
 
 import (
 	"fmt"
+	"rspace"
 	"os"
 	"path/filepath"
 	"io/ioutil"
 	"github.com/spf13/cobra"
 	"regexp"
+	"strconv"
 )
 var recursiveFlag bool = false
 // uploadCmd represents the upload command
@@ -50,15 +52,25 @@ var recursiveFlag bool = false
 	},
 }
 
-func uploadArgs (ctx *Context, args[]string ) {
+func validateArguments( args []string ) {
 	for _, filePath := range args {
 		var err error
 		filePath, err = filepath.Abs(filePath)
-		fileInfo, err := os.Stat(filePath)
+		_, err = os.Stat(filePath)
 		if err != nil {
 			exitWithErr(err)
 		}
+	}
+}
 
+func uploadArgs (ctx *Context, args[]string ) {
+	// fail fast if files can't be read
+	validateArguments(args)
+	
+	var uploadedFiles = make ([]*rspace.FileInfo,0) 
+	for _, filePath := range args {
+		filePath, _ = filepath.Abs(filePath)
+		fileInfo, _ := os.Stat(filePath)
 		if fileInfo.IsDir() {
 			messageStdErr("Scanning for files in " +  fileInfo.Name())
 			var filesInDir []string
@@ -68,14 +80,58 @@ func uploadArgs (ctx *Context, args[]string ) {
 				readSingleDir(filePath, &filesInDir)
 			}
 			messageStdErr(fmt.Sprintf("Found %d files to upload in %s",
-			len(filesInDir), fileInfo.Name()))
-			
+				len(filesInDir), fileInfo.Name()))
 			for _, fileInDir := range filesInDir {
-					postFile(ctx, fileInDir);
+				fileInfo :=	postFile(ctx, fileInDir);
+				if fileInfo != nil {
+					uploadedFiles = append(uploadedFiles, fileInfo)
+				}
+			}
+		} else {
+			fileInfo :=	postFile(ctx, filePath);
+			if fileInfo != nil {
+				uploadedFiles = append(uploadedFiles, fileInfo)
 			}
 		}
 	}
+	report(ctx, uploadedFiles)
  }
+
+ func report(ctx *Context, uploaded []*rspace.FileInfo) {
+	messageStdErr(fmt.Sprintf("Reporting %d results:", len(uploaded)))
+	if ctx.Format.isJson() {
+		ctx.write(prettyMarshal(uploaded))
+	} else if ctx.Format.isQuiet() {
+		printIds(ctx, toIdentifiableFile(uploaded))
+	} else {
+		listToFileTable(ctx, uploaded)
+	}
+ }
+
+ func listToFileTable (ctx *Context, results []*rspace.FileInfo) {
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, 
+	 columnDef{"Created",24},columnDef{"Size",12},columnDef{"ContentType", 25}}
+
+	rows := make([][]string, 0)
+	for _, res := range results {
+		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
+			   res.Created,strconv.Itoa(res.Size),res.ContentType}
+		rows = append(rows, data)
+	}
+	if ctx.Format.isCsv() {
+		printCsv(ctx, headers, rows)
+	} else {
+		printTable(ctx, headers, rows)
+	}
+ }
+ func toIdentifiableFile (results []*rspace.FileInfo) []identifiable {
+	rows := make([]identifiable, 0)
+	
+	for _, res := range results {
+		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
+	}
+	return rows
+}
  // reads non . files from a single folder
  func readSingleDir(filePath string, files *[]string) {
 
@@ -107,13 +163,14 @@ func isDot(info os.FileInfo) bool {
 	match,_ :=  regexp.MatchString("^\\.[A-Za-z0-9\\-_]+", info.Name())
 	return match
 }
-func postFile (ctx *Context, filePath string){
+func postFile (ctx *Context, filePath string) *rspace.FileInfo {
+	messageStdErr("Uploading: " + filePath)
 	file, err := ctx.WebClient.UploadFile(filePath)
 	if err != nil {
 		// other files might upload OK, so don't exit here
 		messageStdErr(err.Error())
 	}
-	fmt.Println(file.Name)
+	return file
 }
 func init() {
 	elnCmd.AddCommand(uploadCmd)

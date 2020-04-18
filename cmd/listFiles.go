@@ -24,11 +24,16 @@ var mediaTypeArg = ""
 // listDocumentsCmd represents the listDocuments command
 var listFilesCmd = &cobra.Command{
 	Use:   "listFiles",
-	Short: "Lists the files",
-	Long:` Search and List files  `,
+	Short: "Lists attachment files.",
+	Long:`List files, with optional 'mediaType' argument to restrict the type of files retrieved 
+
+		  rspace eln listFiles --mediaType document
+		  rspace eln listFiles --mediaType image
+		  rspace eln listFiles --mediaType av
+	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		messageStdErr("listFiles called")
+		messageStdErr("listFiles called:")
 		context := initialiseContext()  
 		cfg := configurePagination()
 		doListFiles(context, cfg)

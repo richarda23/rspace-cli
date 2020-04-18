@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 	"rspace"
 	"strconv"
@@ -24,15 +23,32 @@ import (
 var Quiet bool
 var PageSize int
 var searchQuery string
+// arguments for advanced search
+var orSrchArg bool = false
+var nameSearchArg string
+var tagSrchArg string
+var createdBeforeSrchArg string
+var createdAfterSrcArg string
+var modifiedBeforeSrchArg string
+var modifiedAfterSrchArg string
 
 // listDocumentsCmd represents the listDocuments command
 var listDocumentsCmd = &cobra.Command{
 	Use:   "listDocuments",
 	Short: "Lists the documents",
-	Long:` Lists documents `,
+	Long:` Lists documents. Search is optional E.g.
+	
+		// A global search over names, tags, file and text content
+		 rspace eln listDocuments --query myexperiment
+
+		// Get documents whose name starts with 'experiment' OR is created in 2020 or later
+		rspace eln listDocuments --or --name experiment* --createdAfter 2020-01-01
+
+		//  list the 1st hundred documents created
+		rspace eln listDocuments --orderBy created --sortOrder asc --maxResults 100
+	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("listDocuments called")
 		context := initialiseContext()  
 		cfg := configurePagination()
 		doListDocs(context, cfg)
@@ -44,6 +60,8 @@ func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 	var err error
 	if len(searchQuery) > 0 {
 		docList,err=ctx.WebClient.SearchDocuments(cfg, searchQuery)
+	} else if (advancedSrchArgsAreProvided()){
+		docList,err = doAdvancedSearch(ctx, cfg)
 	} else {
 		docList, err = ctx.WebClient.Documents(cfg )
 	}
@@ -59,6 +77,17 @@ func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 	} else {
 		listToDocTable(ctx, docList)
 	}
+}
+func advancedSrchArgsAreProvided() bool {
+	var advSearchArgs = []string {nameSearchArg, tagSrchArg, createdBeforeSrchArg, createdAfterSrcArg,
+		modifiedAfterSrchArg, modifiedBeforeSrchArg}
+	for _, v := range advSearchArgs {
+		messageStdErr(v)
+		if len(v) > 0 {
+			return true
+		}
+	}
+	return false
 }
 func listToDocTable(ctx *Context, results *rspace.DocumentList) {
 	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25},  columnDef{"Created",24},columnDef{"Last Modified",24}}
@@ -81,6 +110,22 @@ func toIdentifiableDoc (results *rspace.DocumentList) []identifiable {
 	}
 	return rows
 }
+
+func doAdvancedSearch (ctx *Context, cfg rspace.RecordListingConfig)(*rspace.DocumentList, error){
+	messageStdErr("in advanced search")
+	builder := rspace.SearchQueryBuilder{}
+	if orSrchArg {
+		builder.Operator(rspace.Or)
+	}
+	builder.AddTerm(nameSearchArg, rspace.NAME)
+	builder.AddTerm(tagSrchArg, rspace.TAG)
+	builder.AddTerm(createdAfterSrcArg + ";" + createdBeforeSrchArg, rspace.CREATED)
+	builder.AddTerm(modifiedAfterSrchArg + ";" + modifiedBeforeSrchArg, rspace.LAST_MODIFIED)
+	q:=builder.Build()
+	return ctx.WebClient.AdvancedSearchDocuments(cfg, q)
+}
+
+
 func init() {
 	elnCmd.AddCommand(listDocumentsCmd)
 
@@ -90,7 +135,18 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	listDocumentsCmd.PersistentFlags().StringVar(&searchQuery, "query", "", "Search query term")
-
+	listDocumentsCmd.PersistentFlags().BoolVar(&orSrchArg, "or", false, "Combines search terms together with boolean 'OR'")
+	listDocumentsCmd.PersistentFlags().StringVar(&nameSearchArg, "name", "", "Search by name")
+	listDocumentsCmd.PersistentFlags().StringVar(&tagSrchArg, "tag", "", "Search by tag")
+	listDocumentsCmd.PersistentFlags().StringVar(&createdAfterSrcArg, "createdAfter", "",
+			 "Documents created after date, in format '2019-03-26' ")
+	listDocumentsCmd.PersistentFlags().StringVar(&createdBeforeSrchArg, "createdBefore", "",
+			 "Documents created before date, in format '2019-03-26' ")
+	listDocumentsCmd.PersistentFlags().StringVar(&modifiedAfterSrchArg, "modifiedAfter", "",
+			 "Documents modified date, in format '2019-03-26' ")
+	listDocumentsCmd.PersistentFlags().StringVar(&modifiedBeforeSrchArg, "modifiedBefore", "",
+			 "Documents modified before date, in format '2019-03-26' ")
+			 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// listDocumentsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

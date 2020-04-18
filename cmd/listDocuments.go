@@ -27,6 +27,7 @@ var searchQuery string
 var orSrchArg bool = false
 var nameSearchArg string
 var tagSrchArg string
+var formSearchArg string
 var createdBeforeSrchArg string
 var createdAfterSrcArg string
 var modifiedBeforeSrchArg string
@@ -46,6 +47,9 @@ var listDocumentsCmd = &cobra.Command{
 
 		//  list the 1st hundred documents created
 		rspace eln listDocuments --orderBy created --sortOrder asc --maxResults 100
+
+		// list documents created from a particular form:
+		rspace eln listDocuments --form FM12345
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -65,7 +69,6 @@ func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 	} else {
 		docList, err = ctx.WebClient.Documents(cfg )
 	}
-
 	
 	if err != nil {
 		exitWithErr(err)
@@ -80,7 +83,7 @@ func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 }
 func advancedSrchArgsAreProvided() bool {
 	var advSearchArgs = []string {nameSearchArg, tagSrchArg, createdBeforeSrchArg, createdAfterSrcArg,
-		modifiedAfterSrchArg, modifiedBeforeSrchArg}
+		modifiedAfterSrchArg, modifiedBeforeSrchArg, formSearchArg}
 	for _, v := range advSearchArgs {
 		messageStdErr(v)
 		if len(v) > 0 {
@@ -90,11 +93,11 @@ func advancedSrchArgsAreProvided() bool {
 	return false
 }
 func listToDocTable(ctx *Context, results *rspace.DocumentList) {
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25},  columnDef{"Created",24},columnDef{"Last Modified",24}}
+	headers := []columnDef { columnDef{"GlobalId",10},  columnDef{"Name", 25},columnDef{"Form",10},  columnDef{"Created",24},columnDef{"Last Modified",24}}
 
 	rows := make([][]string, 0)
 	for _, res := range results.Documents {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,   res.Created,res.LastModified}
+		data := []string {res.GlobalId, res.Name, res.FormInfo.GlobalId,   res.Created,res.LastModified}
 		rows = append(rows, data)
 	}
 	if ctx.Format.isCsv() {
@@ -119,8 +122,14 @@ func doAdvancedSearch (ctx *Context, cfg rspace.RecordListingConfig)(*rspace.Doc
 	}
 	builder.AddTerm(nameSearchArg, rspace.NAME)
 	builder.AddTerm(tagSrchArg, rspace.TAG)
-	builder.AddTerm(createdAfterSrcArg + ";" + createdBeforeSrchArg, rspace.CREATED)
-	builder.AddTerm(modifiedAfterSrchArg + ";" + modifiedBeforeSrchArg, rspace.LAST_MODIFIED)
+	builder.AddTerm(formSearchArg, rspace.FORM)
+	if createdTerm:=createdAfterSrcArg + ";" + createdBeforeSrchArg; createdTerm!=";" {
+		builder.AddTerm(createdTerm, rspace.CREATED)
+	}
+	if modifiedTerm:=modifiedAfterSrchArg + ";" + modifiedBeforeSrchArg; modifiedTerm!=";" {
+		builder.AddTerm(modifiedAfterSrchArg + ";" + modifiedBeforeSrchArg, rspace.LAST_MODIFIED)
+	}
+
 	q:=builder.Build()
 	return ctx.WebClient.AdvancedSearchDocuments(cfg, q)
 }
@@ -146,6 +155,8 @@ func init() {
 			 "Documents modified date, in format '2019-03-26' ")
 	listDocumentsCmd.PersistentFlags().StringVar(&modifiedBeforeSrchArg, "modifiedBefore", "",
 			 "Documents modified before date, in format '2019-03-26' ")
+	listDocumentsCmd.PersistentFlags().StringVar(&formSearchArg, "form", "",
+			 "Documents created by a form; either name or globalID (e.g. FM5)")
 			 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

@@ -66,6 +66,7 @@ func processResults (files *rspace.FileList) []*rspace.FileInfo {
 	}
 	return rc
 }
+
 func init() {
 	elnCmd.AddCommand(listFilesCmd)
 

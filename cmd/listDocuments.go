@@ -102,7 +102,7 @@ func listToDocTable(ctx *Context, results *rspace.DocumentList) {
 	for _, res := range results.Documents {
 	
 		data := []string {res.GlobalId, res.GetName(), res.FormInfo.GlobalId,
-			   res.Created[0:16],res.LastModified[0:16], res.UserInfo.Username} // ignore seconds/millis to save space
+			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH], res.UserInfo.Username} // ignore seconds/millis to save space
 		rows = append(rows, data)
 	}
 	if ctx.Format.isCsv() {

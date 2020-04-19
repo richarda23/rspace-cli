@@ -11,6 +11,11 @@ import (
 	//"errors"
 )
 
+const (
+
+	DISPLAY_TIMESTAMP_WIDTH = 16
+)
+
 func exitWithStdErrMsg(message string) {
 	messageStdErr(message)
 	os.Exit(1)

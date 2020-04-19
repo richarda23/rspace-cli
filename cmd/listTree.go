@@ -74,12 +74,23 @@ func toIdentifiable (results *rspace.FolderList) []identifiable {
 	return rows
 }
 
+func resultsToBaseInfoList (results *rspace.FolderList) []rspace.BasicInfo {
+	var baseResults = make([]rspace.BasicInfo, len(results.Records))
+	for i,v := range results.Records {
+		var x rspace.BasicInfo = v
+		baseResults [i] = x
+	}
+	return baseResults
+}
 func listToTable(ctx *Context, results *rspace.FolderList) {
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25},columnDef{"Type", 9},  columnDef{"Created",24},columnDef{"Last Modified",24}}
+	baseInfos := resultsToBaseInfoList(results)
+	maxNameCol := getMaxNameLength(baseInfos)
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", maxNameCol},columnDef{"Type", 9},
+	  columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Last Modified",DISPLAY_TIMESTAMP_WIDTH}}
 
 	rows := make([][]string, 0)
 	for _, res := range results.Records {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created,res.LastModified}
+		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
 		rows = append(rows, data)
 	}
 	if ctx.Format.isCsv() {

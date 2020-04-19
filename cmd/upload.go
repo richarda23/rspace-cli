@@ -108,14 +108,25 @@ func uploadArgs (ctx *Context, args[]string ) {
 	}
  }
 
+ func fileListToBaseInfoList (results []*rspace.FileInfo) []rspace.BasicInfo {
+	var baseResults = make([]rspace.BasicInfo, len(results))
+	for i,v := range results {
+		var x rspace.BasicInfo = v
+		baseResults [i] = x
+	}
+	return baseResults
+}
+
  func listToFileTable (ctx *Context, results []*rspace.FileInfo) {
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", 25}, 
-	 columnDef{"Created",24},columnDef{"Size",12},columnDef{"ContentType", 25}}
+	baseInfos := fileListToBaseInfoList(results)
+	nameColWidth := getMaxNameLength(baseInfos)
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", nameColWidth}, 
+	 columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Size",12},columnDef{"ContentType", 25}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
 		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
-			   res.Created,strconv.Itoa(res.Size),res.ContentType}
+			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],strconv.Itoa(res.Size),res.ContentType}
 		rows = append(rows, data)
 	}
 	if ctx.Format.isCsv() {

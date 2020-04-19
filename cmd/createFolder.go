@@ -69,9 +69,9 @@ func folderToTable(ctx *Context, folder *rspace.Folder) {
 	rows := make([][]string, 0)
 	rows = append(rows, data)
 	if ctx.Format.isCsv() {
-		printCsv(ctx, headers, rows)
+		printCsv(ctx, &TableResult{headers, rows})
 	} else {
-		printTable(ctx, headers, rows)
+		printTable(ctx, &TableResult{headers, rows})
 	}
 }
 func init() {

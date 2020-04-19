@@ -12,7 +12,6 @@ import (
 )
 
 const (
-
 	DISPLAY_TIMESTAMP_WIDTH = 16
 )
 
@@ -31,19 +30,32 @@ func prettyMarshal(anything interface{}) string {
 	return string(bytes)
 }
 
-type columnDef struct {
+type columnDef struct { 
 	Title string
 	Width int
 }
 
-func printTable(ctx *Context, headers []columnDef, content [][]string) {
-	printTableHeaders(ctx, headers)
-	printContent(ctx, headers, content)
+type TableResult struct {
+	Headers []columnDef
+	Content [][]string
 }
-func printCsv(ctx *Context, headers []columnDef, content [][]string) {
+
+
+type ResultListFormatter interface {
+	ToJson() string
+	ToTable() *TableResult
+	ToQuiet() []identifiable
+}
+
+
+func printTable(ctx *Context, table *TableResult) {
+	printTableHeaders(ctx, table.Headers)
+	printContent(ctx, table)
+}
+func printCsv(ctx *Context, table *TableResult) {
 	writer := csv.NewWriter(ctx.Writer)
-	writer.Write(columnDefsToString(headers))
-	if err := writer.WriteAll(content); err != nil {
+	writer.Write(columnDefsToString(table.Headers))
+	if err := writer.WriteAll(table.Content); err != nil {
 		exitWithErr(err)
 	}
 }
@@ -56,12 +68,12 @@ func columnDefsToString(headers []columnDef) []string {
 	return rowToPrint
 }
 
-func printContent(ctx *Context, headers []columnDef, content [][]string) {
-	for _, row := range content {
+func printContent(ctx *Context, table *TableResult) {
+	for _, row := range table.Content {
 		rowToPrint := make([]string, 0)
 		for i, cell := range row {
-			toPrint := abbreviate(cell, headers[i].Width)
-			toPrint = fmt.Sprintf("%-[1]*s", headers[i].Width, toPrint)
+			toPrint := abbreviate(cell, table.Headers[i].Width)
+			toPrint = fmt.Sprintf("%-[1]*s", table.Headers[i].Width, toPrint)
 			rowToPrint = append(rowToPrint, toPrint)
 		}
 		ctx.write(strings.Join(rowToPrint, "\t"))

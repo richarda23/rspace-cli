@@ -129,10 +129,11 @@ func uploadArgs (ctx *Context, args[]string ) {
 			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],strconv.Itoa(res.Size),res.ContentType}
 		rows = append(rows, data)
 	}
+	table:=&TableResult{headers, rows}
 	if ctx.Format.isCsv() {
-		printCsv(ctx, headers, rows)
+		printCsv(ctx, table)
 	} else {
-		printTable(ctx, headers, rows)
+		printTable(ctx, table)
 	}
  }
  func toIdentifiableFile (results []*rspace.FileInfo) []identifiable {

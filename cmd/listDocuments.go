@@ -59,6 +59,38 @@ var listDocumentsCmd = &cobra.Command{
 	},
 }
 
+type DocListFormatter struct {
+	*rspace.DocumentList
+}
+func (ds *DocListFormatter) ToJson () string{
+	return prettyMarshal(ds.DocumentList)
+}
+
+func (ds *DocListFormatter) ToQuiet () []identifiable{
+	rows := make([]identifiable, 0)
+	for _, res := range ds.DocumentList.Documents {
+		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
+	}
+	return rows
+}
+
+func (ds *DocListFormatter) ToTable() *TableResult {
+	results := ds.DocumentList
+	baseResults := docListToBaseInfoList(results)
+	maxNameColWidth := getMaxNameLength(baseResults)
+	headers := []columnDef { columnDef{"GlobalId",10},  columnDef{"Name", maxNameColWidth},
+	columnDef{"Form",10},  columnDef{"Created",19},columnDef{"Last Modified",19},columnDef{"Owner",15}}
+
+	rows := make([][]string, 0)
+	for _, res := range results.Documents {
+	
+		data := []string {res.GlobalId, res.GetName(), res.FormInfo.GlobalId,
+			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH], res.UserInfo.Username} // ignore seconds/millis to save space
+		rows = append(rows, data)
+	}
+	return &TableResult{headers, rows}
+}
+
 func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 	var docList *rspace.DocumentList
 	var err error
@@ -73,12 +105,13 @@ func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 	if err != nil {
 		exitWithErr(err)
 	}
+	formatter := DocListFormatter{docList}
 	if ctx.Format.isJson() {
-		ctx.write(prettyMarshal(docList))
+		ctx.write(formatter.ToJson())
 	} else if ctx.Format.isQuiet() {
-		printIds(ctx, toIdentifiableDoc(docList))
+		printIds(ctx, formatter.ToQuiet())
 	} else {
-		listToDocTable(ctx, docList)
+		listToDocTable(ctx, &formatter)
 	}
 }
 func advancedSrchArgsAreProvided() bool {
@@ -92,23 +125,12 @@ func advancedSrchArgsAreProvided() bool {
 	}
 	return false
 }
-func listToDocTable(ctx *Context, results *rspace.DocumentList) {
-	baseResults := docListToBaseInfoList(results)
-	maxNameColWidth := getMaxNameLength(baseResults)
-	headers := []columnDef { columnDef{"GlobalId",10},  columnDef{"Name", maxNameColWidth},
-	columnDef{"Form",10},  columnDef{"Created",19},columnDef{"Last Modified",19},columnDef{"Owner",15}}
-
-	rows := make([][]string, 0)
-	for _, res := range results.Documents {
-	
-		data := []string {res.GlobalId, res.GetName(), res.FormInfo.GlobalId,
-			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH], res.UserInfo.Username} // ignore seconds/millis to save space
-		rows = append(rows, data)
-	}
+func listToDocTable(ctx *Context, formatter ResultListFormatter) {
+	table := formatter.ToTable()
 	if ctx.Format.isCsv() {
-		printCsv(ctx, headers, rows)
+		printCsv(ctx, table)
 	} else {
-		printTable(ctx, headers, rows)
+		printTable(ctx, table)
 	}
 }
 
@@ -119,14 +141,6 @@ func docListToBaseInfoList (results *rspace.DocumentList) []rspace.BasicInfo {
 		baseResults [i] = x
 	}
 	return baseResults
-}
-
-func toIdentifiableDoc (results *rspace.DocumentList) []identifiable {
-	rows := make([]identifiable, 0)
-	for _, res := range results.Documents {
-		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
-	}
-	return rows
 }
 
 func doAdvancedSearch (ctx *Context, cfg rspace.RecordListingConfig)(*rspace.DocumentList, error){

@@ -92,12 +92,14 @@ func listToTable(ctx *Context, results *rspace.FolderList) {
 	for _, res := range results.Records {
 		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
 		rows = append(rows, data)
-	}
+	
+	table:=&TableResult{headers, rows}
 	if ctx.Format.isCsv() {
-		printCsv(ctx, headers, rows)
+		printCsv(ctx, table)
 	} else {
-		printTable(ctx, headers, rows)
+		printTable(ctx, table)
 	}
+}
 }
 
 func init() {

@@ -44,6 +44,14 @@ type Context struct {
 	Format    outputFmt
 }
 
+func (ctx *Context) writeResult(formatter ResultListFormatter) {
+	if ctx.Format.isJson() {
+		ctx.write(formatter.ToJson())
+	} else if ctx.Format.isQuiet() {
+		printIds(ctx, formatter.ToQuiet())
+	}
+}
+
 func (ctx *Context) write(toWrite string) {
 	fmt.Fprintln(ctx.Writer, toWrite)
 }

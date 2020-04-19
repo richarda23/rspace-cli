@@ -131,10 +131,11 @@ func activityListToTable (ctx *Context, results *rspace.ActivityList) {
 			 info.GetGlobalId(),  info.GetName(), res.Username}
 		rows = append(rows, data) 
 	}
+	table:=&TableResult{headers, rows}
 	if ctx.Format.isCsv() {
-		printCsv(ctx, headers, rows)
+		printCsv(ctx, table)
 	} else {
-		printTable(ctx, headers, rows)
+		printTable(ctx, table)
 	}
 }
 func toIdentifiableEvents (result *rspace.ActivityList) []identifiable {

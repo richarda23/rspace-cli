@@ -77,7 +77,7 @@ func printTableHeaders(ctx *Context, headers []columnDef) {
 	ctx.write(strings.Join(headersToPrint, "\t"))
 }
 func abbreviate(toAbbreviate string, maxLen int) string {
-	if len(toAbbreviate) > maxLen {
+	if maxLen > 3 && len(toAbbreviate) > maxLen {
 		toAbbreviate = toAbbreviate[0:(maxLen-3)] + ".."
 	}
 	return toAbbreviate

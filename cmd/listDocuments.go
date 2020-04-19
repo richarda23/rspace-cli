@@ -93,11 +93,16 @@ func advancedSrchArgsAreProvided() bool {
 	return false
 }
 func listToDocTable(ctx *Context, results *rspace.DocumentList) {
-	headers := []columnDef { columnDef{"GlobalId",10},  columnDef{"Name", 25},columnDef{"Form",10},  columnDef{"Created",24},columnDef{"Last Modified",24}}
+	baseResults := docListToBaseInfoList(results)
+	maxNameColWidth := getMaxNameLength(baseResults)
+	headers := []columnDef { columnDef{"GlobalId",10},  columnDef{"Name", maxNameColWidth},
+	columnDef{"Form",10},  columnDef{"Created",19},columnDef{"Last Modified",19},columnDef{"Owner",15}}
 
 	rows := make([][]string, 0)
 	for _, res := range results.Documents {
-		data := []string {res.GlobalId, res.Name, res.FormInfo.GlobalId,   res.Created,res.LastModified}
+	
+		data := []string {res.GlobalId, res.GetName(), res.FormInfo.GlobalId,
+			   res.Created[0:16],res.LastModified[0:16], res.UserInfo.Username} // ignore seconds/millis to save space
 		rows = append(rows, data)
 	}
 	if ctx.Format.isCsv() {
@@ -106,6 +111,16 @@ func listToDocTable(ctx *Context, results *rspace.DocumentList) {
 		printTable(ctx, headers, rows)
 	}
 }
+
+func docListToBaseInfoList (results *rspace.DocumentList) []rspace.BasicInfo {
+	var baseResults = make([]rspace.BasicInfo, len(results.Documents))
+	for i,v := range results.Documents {
+		var x rspace.BasicInfo = v
+		baseResults [i] = x
+	}
+	return baseResults
+}
+
 func toIdentifiableDoc (results *rspace.DocumentList) []identifiable {
 	rows := make([]identifiable, 0)
 	for _, res := range results.Documents {
@@ -133,7 +148,6 @@ func doAdvancedSearch (ctx *Context, cfg rspace.RecordListingConfig)(*rspace.Doc
 	q:=builder.Build()
 	return ctx.WebClient.AdvancedSearchDocuments(cfg, q)
 }
-
 
 func init() {
 	elnCmd.AddCommand(listDocumentsCmd)

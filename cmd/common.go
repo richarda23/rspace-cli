@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"rspace"
+	"math"
 	//"errors"
 )
 
@@ -86,3 +88,16 @@ func printIds(ctx *Context, source []identifiable) {
 		ctx.write(item.Id)
 	}
 }
+
+// gets the length of the longest name in the result list 
+func getMaxNameLength(results []rspace.BasicInfo) int {
+	var maxPossible float64  = 25
+	var currLongest float64 = 0
+	for _, res := range results {
+		if nameLen:=float64(len(res.GetName())); nameLen > currLongest {
+			currLongest = math.Min(maxPossible, nameLen)
+		}
+	}	
+	return int( currLongest)
+}
+

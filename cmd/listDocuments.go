@@ -106,13 +106,7 @@ func doListDocs (ctx *Context, cfg rspace.RecordListingConfig) {
 		exitWithErr(err)
 	}
 	formatter := DocListFormatter{docList}
-	if ctx.Format.isJson() {
-		ctx.write(formatter.ToJson())
-	} else if ctx.Format.isQuiet() {
-		printIds(ctx, formatter.ToQuiet())
-	} else {
-		listToDocTable(ctx, &formatter)
-	}
+	ctx.writeResult(&formatter)
 }
 func advancedSrchArgsAreProvided() bool {
 	var advSearchArgs = []string {nameSearchArg, tagSrchArg, createdBeforeSrchArg, createdAfterSrcArg,

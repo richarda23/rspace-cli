@@ -49,6 +49,10 @@ func (ctx *Context) writeResult(formatter ResultListFormatter) {
 		ctx.write(formatter.ToJson())
 	} else if ctx.Format.isQuiet() {
 		printIds(ctx, formatter.ToQuiet())
+	} else if (ctx.Format.isCsv()) {
+		printCsv(ctx, formatter.ToTable())
+	} else {
+		printTable(ctx, formatter.ToTable())
 	}
 }
 
@@ -122,14 +126,12 @@ func initOutputWriter(outfile string) io.Writer {
 
 func initWebClient() *rspace.RsWebClient {
 	if len(getenv(BASE_URL_ENV_NAME)) == 0 {
-		fmt.Println("No URL for RSpace  detected")
-		os.Exit(1)
+		exitWithStdErrMsg("No URL for RSpace  detected")
 	}
 	url, _ := url.Parse(getenv(BASE_URL_ENV_NAME))
 	apikey := getenv(APIKEY_ENV_NAME)
 	if len(apikey) == 0 {
-		fmt.Println("No API key detected")
-		os.Exit(1)
+		exitWithStdErrMsg("No API key detected")
 	}
 	webClient := rspace.NewWebClient(url, apikey)
 	return webClient

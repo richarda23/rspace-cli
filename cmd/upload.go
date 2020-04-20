@@ -23,7 +23,6 @@ import (
 	"io/ioutil"
 	"github.com/spf13/cobra"
 	"regexp"
-	"strconv"
 )
 var recursiveFlag bool = false
 // uploadCmd represents the upload command
@@ -99,13 +98,10 @@ func uploadArgs (ctx *Context, args[]string ) {
 
  func report(ctx *Context, uploaded []*rspace.FileInfo) {
 	messageStdErr(fmt.Sprintf("Reporting %d results:", len(uploaded)))
-	if ctx.Format.isJson() {
-		ctx.write(prettyMarshal(uploaded))
-	} else if ctx.Format.isQuiet() {
-		printIds(ctx, toIdentifiableFile(uploaded))
-	} else {
-		listToFileTable(ctx, uploaded)
-	}
+
+	var fal FileArrayList = FileArrayList{uploaded}
+	var formatter FileListFormatter = FileListFormatter{fal}
+	ctx.writeResult(&formatter)
  }
 
  func fileListToBaseInfoList (results []*rspace.FileInfo) []rspace.BasicInfo {
@@ -117,33 +113,7 @@ func uploadArgs (ctx *Context, args[]string ) {
 	return baseResults
 }
 
- func listToFileTable (ctx *Context, results []*rspace.FileInfo) {
-	baseInfos := fileListToBaseInfoList(results)
-	nameColWidth := getMaxNameLength(baseInfos)
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", nameColWidth}, 
-	 columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Size",12},columnDef{"ContentType", 25}}
 
-	rows := make([][]string, 0)
-	for _, res := range results {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
-			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],strconv.Itoa(res.Size),res.ContentType}
-		rows = append(rows, data)
-	}
-	table:=&TableResult{headers, rows}
-	if ctx.Format.isCsv() {
-		printCsv(ctx, table)
-	} else {
-		printTable(ctx, table)
-	}
- }
- func toIdentifiableFile (results []*rspace.FileInfo) []identifiable {
-	rows := make([]identifiable, 0)
-	
-	for _, res := range results {
-		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
-	}
-	return rows
-}
  // reads non . files from a single folder
  func readSingleDir(filePath string, files *[]string) {
 
@@ -186,15 +156,7 @@ func postFile (ctx *Context, filePath string) *rspace.FileInfo {
 }
 func init() {
 	elnCmd.AddCommand(uploadCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	uploadCmd.PersistentFlags().BoolVar(&recursiveFlag, "recursive", false,
 	 "If uploading a folder, uploads contents recursively.")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// uploadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

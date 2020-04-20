@@ -58,14 +58,36 @@ func doListTree (ctx *Context, cfg rspace.RecordListingConfig) {
 	if err != nil {
 		exitWithErr(err)
 	}
-	if ctx.Format.isJson() {
-		ctx.write(prettyMarshal(folderList))
-	} else if ctx.Format.isQuiet() {
-		printIds(ctx, toIdentifiable(folderList))
-	} else {
-		listToTable(ctx, folderList)
-	}
+	ctx.writeResult(&FolderListFormatter{folderList})
 }
+
+type FolderListFormatter struct {
+	*rspace.FolderList
+}
+
+func (ds *FolderListFormatter) ToJson () string{
+	return prettyMarshal(ds.FolderList)
+}
+
+func (ds *FolderListFormatter) ToQuiet () []identifiable{
+	return toIdentifiable(ds.FolderList)
+}
+
+func (ds *FolderListFormatter) ToTable () *TableResult{
+	baseInfos := resultsToBaseInfoList(ds.FolderList)
+	maxNameCol := getMaxNameLength(baseInfos)
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", maxNameCol},columnDef{"Type", 9},
+	  columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Last Modified",DISPLAY_TIMESTAMP_WIDTH}}
+
+	rows := make([][]string, 0)
+	for _, res := range ds.FolderList.Records {
+		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
+		rows = append(rows, data)
+	}
+	table:=&TableResult{headers, rows}
+	return table
+}
+
 func toIdentifiable (results *rspace.FolderList) []identifiable {
 	rows := make([]identifiable, 0)
 	for _, res := range results.Records {
@@ -82,36 +104,10 @@ func resultsToBaseInfoList (results *rspace.FolderList) []rspace.BasicInfo {
 	}
 	return baseResults
 }
-func listToTable(ctx *Context, results *rspace.FolderList) {
-	baseInfos := resultsToBaseInfoList(results)
-	maxNameCol := getMaxNameLength(baseInfos)
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", maxNameCol},columnDef{"Type", 9},
-	  columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Last Modified",DISPLAY_TIMESTAMP_WIDTH}}
 
-	rows := make([][]string, 0)
-	for _, res := range results.Records {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
-		rows = append(rows, data)
-	
-	table:=&TableResult{headers, rows}
-	if ctx.Format.isCsv() {
-		printCsv(ctx, table)
-	} else {
-		printTable(ctx, table)
-	}
-}
-}
 
 func init() {
 	elnCmd.AddCommand(listTreeCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listTreeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	 listTreeCmd.Flags().IntVar(&folderId, "folder",  0, "The id of the folder or notebook to list")
 	 listTreeCmd.Flags().StringVar(&treeFilterArg, "filter",  "", "Restrict results to 1 or more of: " + strings.Join(validTreeFilters, ","))

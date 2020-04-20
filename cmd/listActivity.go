@@ -87,6 +87,33 @@ var listActivityCmd = &cobra.Command{
 	},
 }
 
+type ActivityListFormatter struct {
+	*rspace.ActivityList
+}
+func (ds *ActivityListFormatter) ToJson () string{
+	return prettyMarshal(ds.ActivityList)
+}
+
+func (ds *ActivityListFormatter) ToQuiet () []identifiable{
+	return toIdentifiableEvents(ds.ActivityList)
+}
+
+func (ds *ActivityListFormatter) ToTable () *TableResult{
+	var headers = []columnDef{columnDef{"Action",10},columnDef{"Timestamp", DISPLAY_TIMESTAMP_WIDTH}, 
+	columnDef{"Id",10}, columnDef {"Name",25}, columnDef{"User",10}}
+
+	rows := make([][]string, 0)
+	for _, res := range ds.ActivityList.Activities {
+		info:=basicInfoFromPayload(res.Payload)
+		data := []string {res.Action, res.Timestamp[:DISPLAY_TIMESTAMP_WIDTH],
+		 info.GetGlobalId(),  info.GetName(), res.Username}
+		rows = append(rows, data) 
+	}
+	return &TableResult{headers, rows}
+}
+
+
+
 func configureActivityList () (*rspace.ActivityQuery, error) {
 	builder := rspace.ActivityQueryBuilder{}
 	for _,v := range acArgs.actions() {
@@ -110,34 +137,10 @@ func doListActivity (ctx *Context, cfg *rspace.ActivityQuery) {
 	if err != nil {
 		exitWithErr(err)
 	}
-	if ctx.Format.isJson() {
-		ctx.write(prettyMarshal(docList))
-	} else if ctx.Format.isQuiet() {
-		printIds(ctx, toIdentifiableEvents(docList))
-	} else {
-		//processedResults := processResults(docList)
-		activityListToTable(ctx, docList)
-	}
+	ctx.writeResult(&ActivityListFormatter{docList})
 }
 
-func activityListToTable (ctx *Context, results *rspace.ActivityList) {
-	var headers = []columnDef{columnDef{"Action",10},columnDef{"Timestamp", DISPLAY_TIMESTAMP_WIDTH}, 
-		columnDef{"Id",10}, columnDef {"Name",25}, columnDef{"User",10}}
 
-	rows := make([][]string, 0)
-	for _, res := range results.Activities {
-		info:=basicInfoFromPayload(res.Payload)
-		data := []string {res.Action, res.Timestamp[:DISPLAY_TIMESTAMP_WIDTH],
-			 info.GetGlobalId(),  info.GetName(), res.Username}
-		rows = append(rows, data) 
-	}
-	table:=&TableResult{headers, rows}
-	if ctx.Format.isCsv() {
-		printCsv(ctx, table)
-	} else {
-		printTable(ctx, table)
-	}
-}
 func toIdentifiableEvents (result *rspace.ActivityList) []identifiable {
 	rc := make([]identifiable, 0)
 	for _,v := range result.Activities {
@@ -170,10 +173,7 @@ func init() {
 	elnCmd.AddCommand(listActivityCmd)
 
 	initPaginationFromArgs(listActivityCmd)
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
+	
 	listActivityCmd.PersistentFlags().StringVar(&acArgs.actionsArg, "actions", "", `Comma separated list of Actions 
 	   (e.g. READ, WRITE.CREATE etc`)
 	   listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "users", "", `Comma separated list of usernames`)
@@ -182,7 +182,4 @@ func init() {
 		listActivityCmd.PersistentFlags().StringVar(&acArgs.beforeDateArg, "beforeDate", "", `Find events before this date, in format YYYY:MM:DD
 		e.g. 2020-01-31`)
 		listActivityCmd.PersistentFlags().StringVar(&acArgs.globalId, "id", "", `Find events for a single document`)
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listDocumentsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

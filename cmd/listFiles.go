@@ -18,6 +18,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"rspace"
+	"strconv"
 
 )
 var mediaTypeArg = ""
@@ -41,21 +42,55 @@ var listFilesCmd = &cobra.Command{
 }
 
 func doListFiles (ctx *Context, cfg rspace.RecordListingConfig) {
-	var docList *rspace.FileList
+	var filesList *rspace.FileList
 	var err error
-	docList, err = ctx.WebClient.Files(cfg, mediaTypeArg)
+	filesList, err = ctx.WebClient.Files(cfg, mediaTypeArg)
 	if err != nil {
 		exitWithErr(err)
 	}
-	if ctx.Format.isJson() {
-		ctx.write(prettyMarshal(docList))
-	} else if ctx.Format.isQuiet() {
-		processedResults := processResults(docList)
-		printIds(ctx, toIdentifiableFile(processedResults))
-	} else {
-		processedResults := processResults(docList)
-		listToFileTable(ctx, processedResults)
+	formatter := &FileListFormatter{FileArrayList{processResults(filesList)}}
+	ctx.writeResult(formatter)
+}
+
+type FileArrayList struct {
+	fList []*rspace.FileInfo
+}
+type FileListFormatter struct {
+	FileArrayList
+}
+
+func (fs *FileListFormatter) ToJson () string{
+	return prettyMarshal(fs.FileArrayList.fList)
+}
+
+func (ds *FileListFormatter) ToQuiet () []identifiable{
+	return toIdentifiableFile(ds.FileArrayList.fList)
+}
+
+func (ds *FileListFormatter) ToTable () *TableResult {
+	results := ds.FileArrayList.fList
+
+	baseInfos := fileListToBaseInfoList(results)
+	nameColWidth := getMaxNameLength(baseInfos)
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", nameColWidth}, 
+	 columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Size",12},columnDef{"ContentType", 25}}
+
+	rows := make([][]string, 0)
+	for _, res := range results {
+		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
+			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],strconv.Itoa(res.Size),res.ContentType}
+		rows = append(rows, data)
 	}
+	return &TableResult{headers, rows}
+	
+ }
+ func toIdentifiableFile (results []*rspace.FileInfo) []identifiable {
+	rows := make([]identifiable, 0)
+	
+	for _, res := range results {
+		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
+	}
+	return rows
 }
 // convert results  so can re-used file-display methods
 func processResults (files *rspace.FileList) []*rspace.FileInfo {
@@ -71,9 +106,6 @@ func init() {
 	elnCmd.AddCommand(listFilesCmd)
 
 	initPaginationFromArgs(listFilesCmd)
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	listFilesCmd.PersistentFlags().StringVar(&mediaTypeArg, "mediaType", "", "Optional media type, 1 of 'image', 'document' or 'av'")
 

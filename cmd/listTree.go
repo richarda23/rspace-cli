@@ -83,6 +83,7 @@ func (ds *FolderListFormatter) ToTable () *TableResult{
 	for _, res := range ds.FolderList.Records {
 		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
 		rows = append(rows, data)
+
 	}
 	table:=&TableResult{headers, rows}
 	return table
@@ -104,7 +105,6 @@ func resultsToBaseInfoList (results *rspace.FolderList) []rspace.BasicInfo {
 	}
 	return baseResults
 }
-
 
 func init() {
 	elnCmd.AddCommand(listTreeCmd)

@@ -83,7 +83,8 @@ var listActivityCmd = &cobra.Command{
 		messageStdErr("listActivity called:")
 		context := initialiseContext()  
 		cfg,_ := configureActivityList()
-		doListActivity(context, cfg)
+		pgCrit := configurePagination()
+		doListActivity(context, cfg, pgCrit)
 	},
 }
 
@@ -99,20 +100,21 @@ func (ds *ActivityListFormatter) ToQuiet () []identifiable{
 }
 
 func (ds *ActivityListFormatter) ToTable () *TableResult{
-	var headers = []columnDef{columnDef{"Action",10},columnDef{"Timestamp", DISPLAY_TIMESTAMP_WIDTH}, 
-	columnDef{"Id",10}, columnDef {"Name",25}, columnDef{"User",10}}
-
+	
 	rows := make([][]string, 0)
+	var basicInfos  []rspace.BasicInfo = make ([]rspace.BasicInfo, 0)
 	for _, res := range ds.ActivityList.Activities {
 		info:=basicInfoFromPayload(res.Payload)
+		basicInfos = append(basicInfos, info)
 		data := []string {res.Action, res.Timestamp[:DISPLAY_TIMESTAMP_WIDTH],
-		 info.GetGlobalId(),  info.GetName(), res.Username}
-		rows = append(rows, data) 
-	}
+			info.GetGlobalId(),  info.GetName(), res.Username}
+			rows = append(rows, data) 
+		}
+	maxLength := getMaxNameLength(basicInfos)
+	var headers = []columnDef{columnDef{"Action",10},columnDef{"Timestamp", DISPLAY_TIMESTAMP_WIDTH}, 
+		columnDef{"Id",10}, columnDef {"Name",maxLength}, columnDef{"User",10}}
 	return &TableResult{headers, rows}
 }
-
-
 
 func configureActivityList () (*rspace.ActivityQuery, error) {
 	builder := rspace.ActivityQueryBuilder{}
@@ -130,10 +132,10 @@ func configureActivityList () (*rspace.ActivityQuery, error) {
 	return builder.Build()
 }
 
-func doListActivity (ctx *Context, cfg *rspace.ActivityQuery) {
+func doListActivity (ctx *Context, cfg *rspace.ActivityQuery, pgcrit rspace.RecordListingConfig) {
 	var docList *rspace.ActivityList
 	var err error
-	docList, err = ctx.WebClient.Activities(cfg)
+	docList, err = ctx.WebClient.Activities(cfg, pgcrit)
 	if err != nil {
 		exitWithErr(err)
 	}
@@ -175,8 +177,8 @@ func init() {
 	initPaginationFromArgs(listActivityCmd)
 	
 	listActivityCmd.PersistentFlags().StringVar(&acArgs.actionsArg, "actions", "", `Comma separated list of Actions 
-	   (e.g. READ, WRITE.CREATE etc`)
-	   listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "users", "", `Comma separated list of usernames`)
+	   (e.g. READ, WRITE.CREATE etc`) 
+	   listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "usernames", "", `Comma separated list of usernames`)
 	   listActivityCmd.PersistentFlags().StringVar(&acArgs.afterDateArg, "afterDate", "", `Find events after this date, in format YYYY:MM:DD
 		e.g. 2020-01-31`)
 		listActivityCmd.PersistentFlags().StringVar(&acArgs.beforeDateArg, "beforeDate", "", `Find events before this date, in format YYYY:MM:DD

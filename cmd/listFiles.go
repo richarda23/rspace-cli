@@ -34,7 +34,6 @@ var listFilesCmd = &cobra.Command{
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		messageStdErr("listFiles called:")
 		context := initialiseContext()  
 		cfg := configurePagination()
 		doListFiles(context, cfg)

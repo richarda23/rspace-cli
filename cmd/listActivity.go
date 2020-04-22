@@ -80,7 +80,6 @@ var listActivityCmd = &cobra.Command{
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		messageStdErr("listActivity called:")
 		context := initialiseContext()  
 		cfg,_ := configureActivityList()
 		pgCrit := configurePagination()

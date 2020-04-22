@@ -29,12 +29,12 @@ var recursiveFlag bool = false
  var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "Upload one or 'more files",
-	Long: ` Uepload files. Add files and folders to the command line. 
+	Long: ` Upload files. Add files and folders to the command line. 
 	By default, folder contents aren't uploaded recursively.
 	
-	Use the --recursive flag to upload all folder contents.
+	Use the --recursive flag to upload all folder tree contents.
 	
-	The folder structure is flattened in RSpace, files are uploaded to the target folder.
+	The folder structure is flattened in RSpace. Files are uploaded to the target folder.
 	
 	If not set, files will be uploaded to the appropriate 'Api Inbox' Gallery folders,
 	depending on the file type. 
@@ -42,7 +42,7 @@ var recursiveFlag bool = false
 	Files or folder names starting with '.' are ignored. But you can use '.' as an argument
 	to upload the current folder, e.g.
 
-	    rspace eln upload . --recursive
+	rspace eln upload . --recursive
 	`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -112,8 +112,6 @@ func uploadArgs (ctx *Context, args[]string ) {
 	}
 	return baseResults
 }
-
-
  // reads non . files from a single folder
  func readSingleDir(filePath string, files *[]string) {
 
@@ -158,5 +156,4 @@ func init() {
 	elnCmd.AddCommand(uploadCmd)
 	uploadCmd.PersistentFlags().BoolVar(&recursiveFlag, "recursive", false,
 	 "If uploading a folder, uploads contents recursively.")
-
 }

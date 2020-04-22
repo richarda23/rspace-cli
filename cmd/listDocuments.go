@@ -112,7 +112,6 @@ func advancedSrchArgsAreProvided() bool {
 	var advSearchArgs = []string {nameSearchArg, tagSrchArg, createdBeforeSrchArg, createdAfterSrcArg,
 		modifiedAfterSrchArg, modifiedBeforeSrchArg, formSearchArg}
 	for _, v := range advSearchArgs {
-		messageStdErr(v)
 		if len(v) > 0 {
 			return true
 		}

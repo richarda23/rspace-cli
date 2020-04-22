@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"rspace"
-	"fmt"
+	//"fmt"
 )
 type addUserArgs struct {
  UsernameArg, FNameArg, LNameArg, EmailArg, RoleArg, AffiliationArg, PasswordFileArg string
@@ -39,10 +39,10 @@ var addUserCmd = &cobra.Command{
 
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		userPost := validateArgs()
+		userPost := validateFlags()
 		ctx := initialiseContext()
 		user, err := ctx.WebClient.UserNew(userPost)
-		if err != nil {
+		if err != nil  {
 			exitWithErr(err)
 		} else {
 			ctx.write(prettyMarshal(user))
@@ -50,7 +50,7 @@ var addUserCmd = &cobra.Command{
 	},
 }
 
-func validateArgs () *rspace.UserPost {
+func validateFlags () *rspace.UserPost {
 	pwd,err := ioutil.ReadFile(userArgs.PasswordFileArg)
 	if err != nil {
 		exitWithErr(err)
@@ -64,7 +64,6 @@ func validateArgs () *rspace.UserPost {
 	if e != nil {
 		exitWithErr(e)
 	}
-	fmt.Println(post)
 	return post;
 }
 

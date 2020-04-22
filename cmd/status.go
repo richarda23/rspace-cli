@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +25,6 @@ var statusCmd = &cobra.Command{
 	Short: "Checks status of RSpace",
 	Long: "Gets version and current status of RSpace",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("status called")
 		context:=initialiseContext()
 		got, err := context.WebClient.Status()
 		if err != nil {

@@ -1,0 +1,82 @@
+/*
+Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+package cmd
+
+import (
+	"github.com/spf13/cobra"
+	"rspace"
+	"io/ioutil"
+)
+type addDocArgs struct {
+	ParentfolderArg string
+	NameArg string
+	Tags string
+	ContentFile string
+	Content string
+}
+
+var addDocArgV = addDocArgs{}
+
+// addDocumentCmd represents the createNotebook command
+var addDocumentCmd = &cobra.Command{
+	Use:   "addDocument",
+	Short: "Creates a new basic document with optionl tags and content",
+	Long: `Create a new notebook, with an optional name and parent folder
+	  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.
+	`,
+	Run: func(cmd *cobra.Command, args []string) {
+		context:=initialiseContext()
+		content:=getContent()
+		content = "<pre>"+content+"</pre>"
+		newDoc:=context.WebClient.NewBasicDocumentWithContent(addDocArgV.NameArg, addDocArgV.Tags, content)
+		docList := rspace.DocumentList{}
+		docList.Documents = []rspace.DocumentInfo{*newDoc}
+		var dlf = DocListFormatter{&docList}
+		context.writeResult(&dlf)
+	//	doCreateFolder(context, notebookName, parentfolder, post)
+	},
+}
+
+func getContent() string {
+	if len (addDocArgV.Content) > 0 {
+		return addDocArgV.Content
+	} else if len(addDocArgV.ContentFile) > 0 {
+		bytes,err := ioutil.ReadFile(addDocArgV.ContentFile)
+		if err != nil {
+			exitWithErr(err)
+		}
+		return string(bytes)
+	}
+	return ""
+}
+
+func init() {
+	elnCmd.AddCommand(addDocumentCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// addDocumentCmd.PersistentFlags().String("name", "n","",  "A name for the notebook")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	 addDocumentCmd.Flags().StringVar(&addDocArgV.NameArg, "name",  "", "A name for the document")
+	 addDocumentCmd.Flags().StringVar(&addDocArgV.ParentfolderArg, "folder", "", "An id for the folder that will contain the new document")
+	 addDocumentCmd.Flags().StringVar(&addDocArgV.Tags, "tags", "", "One or more tags, comma separated")
+	 addDocumentCmd.Flags().StringVar(&addDocArgV.ContentFile, "file", "", "A file of text or HTML content to put in the document")
+	 addDocumentCmd.Flags().StringVar(&addDocArgV.Content, "content", "", "Text or HTML content to put in the document")
+}

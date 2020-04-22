@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"os"
 	"github.com/spf13/cobra"
 )
 var outputFormatArg string
@@ -33,23 +31,12 @@ var elnCmd = &cobra.Command{
 	`,
 	Args:   cobra.MinimumNArgs(1) ,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Fprintln(os.Stderr, "Requires a subcommand")
+		messageStdErr("Requires a subcommand")
 	},
 }
 
-
 func init() {
 	rootCmd.AddCommand(elnCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-//	 elnCmd.PersistentFlags().BoolVarP(&isQuiet, "quiet", "q", false, "Quiet output")
-//	 elnCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Verbose")
-	 elnCmd.PersistentFlags().StringVarP(&outputFormatArg, "outputFormat", "f", "table", "Output format: 1 of 'json','table', 'csv' or 'quiet' ")
+	 elnCmd.PersistentFlags().StringVarP(&outputFormatArg, "outputFormat", "f", "table", "Output format: one of 'json','table', 'csv' or 'quiet' ")
 	 elnCmd.PersistentFlags().StringVarP(&outFileArg, "outFile", "o", "", "Output file for program output")
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// elnCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

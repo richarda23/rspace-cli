@@ -23,8 +23,7 @@ import (
 	"fmt"
 )
 type addUserArgs struct {
- UsernameArg string
-  EmailArg, RoleArg, PasswordFileArg string
+ UsernameArg, FNameArg, LNameArg, EmailArg, RoleArg, AffiliationArg, PasswordFileArg string
 }
 var userArgs = addUserArgs{}
 // addUserCmd represents the createNotebook command
@@ -59,8 +58,9 @@ func validateArgs () *rspace.UserPost {
 	builder := &rspace.UserPostBuilder{}
 	builder.Password(string(pwd)).Username(userArgs.UsernameArg)
 	builder.Email(rspace.Email(userArgs.EmailArg))
-	builder.Affiliation("Unknown")
-	post,e:= builder.Role(getRoleForArg(userArgs.RoleArg)).FirstName("unknown").LastName("unknown").Build()
+	builder.FirstName(userArgs.FNameArg).LastName(userArgs.LNameArg)
+	builder.Affiliation(userArgs.AffiliationArg)
+	post,e:= builder.Role(getRoleForArg(userArgs.RoleArg)).Build()
 	if e != nil {
 		exitWithErr(e)
 	}
@@ -87,8 +87,12 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	 addUserCmd.Flags().StringVar(&userArgs.UsernameArg, "username", "", "Username, >= 6 chars")
+	addUserCmd.Flags().StringVar(&userArgs.UsernameArg, "username", "", "username")
+	addUserCmd.Flags().StringVar(&userArgs.FNameArg, "first", "Unknown", "First name")
+	 addUserCmd.Flags().StringVar(&userArgs.LNameArg, "last", "Unknown", "Last name")
 	 addUserCmd.Flags().StringVar(&userArgs.EmailArg, "email", "", "Valid email address")
 	 addUserCmd.Flags().StringVar(&userArgs.RoleArg, "role", "user", "Role, either 'pi' or 'user'")
+	 addUserCmd.Flags().StringVar(&userArgs.AffiliationArg, "affiliation", "unknown", "Affiliation (Community only)")
+
 	 addUserCmd.Flags().StringVar(&userArgs.PasswordFileArg, "pwdfile", "", "a file containing the password")
 	}

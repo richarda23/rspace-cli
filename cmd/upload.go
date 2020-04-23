@@ -23,8 +23,15 @@ import (
 	"io/ioutil"
 	"github.com/spf13/cobra"
 	"regexp"
+	"text/template"
+	"bytes"
 )
-var recursiveFlag bool = false
+type uploadCmdArgs struct {
+ RecursiveFlag bool
+ GenerateSummaryDoc bool
+}
+
+var uploadArgsArg uploadCmdArgs
 // uploadCmd represents the upload command
  var uploadCmd = &cobra.Command{
 	Use:   "upload",
@@ -73,7 +80,7 @@ func uploadArgs (ctx *Context, args[]string ) {
 		if fileInfo.IsDir() {
 			messageStdErr("Scanning for files in " +  fileInfo.Name())
 			var filesInDir []string
-			if recursiveFlag {
+			if uploadArgsArg.RecursiveFlag {
 				filepath.Walk(filePath, visit(&filesInDir) )
 			} else {
 				readSingleDir(filePath, &filesInDir)
@@ -97,11 +104,32 @@ func uploadArgs (ctx *Context, args[]string ) {
  }
 
  func report(ctx *Context, uploaded []*rspace.FileInfo) {
+	if uploadArgsArg.GenerateSummaryDoc {
+		contentStr := generateSummaryContent(uploaded)
+		summaryDocInfo:=ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary","", contentStr)
+		messageStdErr("Created summary with id " + summaryDocInfo.GlobalId)
+	}
 	messageStdErr(fmt.Sprintf("Reporting %d results:", len(uploaded)))
 
 	var fal FileArrayList = FileArrayList{uploaded}
 	var formatter FileListFormatter = FileListFormatter{fal}
 	ctx.writeResult(&formatter)
+ }
+ // populates an HTML  table template with links to uploaded files
+ func generateSummaryContent(results []*rspace.FileInfo) string {
+	const tmpl = `
+	<table>
+	 <tr> <th>Name</th><th>Id</th><th>Link</th></tr>
+		{{range $val := .}}
+		 <tr><td>{{$val.Name}}</td><td><a href="/globalId/{{$val.GlobalId}}">{{$val.GlobalId}}</a></td><td><fileId={{$val.Id}}></td></tr>
+		{{end}}
+	</table>
+	`
+	t := template.Must(template.New("tmpl").Parse(tmpl))
+	var buf bytes.Buffer
+
+	t.Execute(&buf, results)
+	return buf.String()
  }
 
  func fileListToBaseInfoList (results []*rspace.FileInfo) []rspace.BasicInfo {
@@ -154,6 +182,8 @@ func postFile (ctx *Context, filePath string) *rspace.FileInfo {
 }
 func init() {
 	elnCmd.AddCommand(uploadCmd)
-	uploadCmd.PersistentFlags().BoolVar(&recursiveFlag, "recursive", false,
-	 "If uploading a folder, uploads contents recursively.")
+	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false,
+	"If uploading a folder, uploads contents recursively.")
+	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.GenerateSummaryDoc,
+		 "add-summary", false, "Generate a summary document containing links to uploaded files")
 }

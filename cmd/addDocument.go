@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	"rspace"
 	"io/ioutil"
+	"strings"
 )
 type addDocArgs struct {
 	ParentfolderArg string
@@ -33,14 +34,16 @@ var addDocArgV = addDocArgs{}
 // addDocumentCmd represents the createNotebook command
 var addDocumentCmd = &cobra.Command{
 	Use:   "addDocument",
-	Short: "Creates a new basic document with optionl tags and content",
-	Long: `Create a new notebook, with an optional name and parent folder
+	Short: "Creates a new basic document with optional tags and content",
+	Long: `Create a new document, with an optional name and parent folder.
 	  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.
+
+	  If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
+	  tags to preserve formatting.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		context:=initialiseContext()
 		content:=getContent()
-		content = "<pre>"+content+"</pre>"
 		newDoc:=context.WebClient.NewBasicDocumentWithContent(addDocArgV.NameArg, addDocArgV.Tags, content)
 		docList := rspace.DocumentList{}
 		docList.Documents = []rspace.DocumentInfo{*newDoc}
@@ -58,7 +61,13 @@ func getContent() string {
 		if err != nil {
 			exitWithErr(err)
 		}
-		return string(bytes)
+		lowerCaseFile:=strings.ToLower(addDocArgV.ContentFile)
+		if strings.HasSuffix(lowerCaseFile, "html") ||
+			strings.HasSuffix(lowerCaseFile, "htm") {
+				return string(bytes)
+		} else {
+			return "<pre>" + string(bytes) + "</pre>"
+		}
 	}
 	return ""
 }

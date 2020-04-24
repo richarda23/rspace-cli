@@ -22,15 +22,54 @@ import (
 	"path/filepath"
 	"io/ioutil"
 	"github.com/spf13/cobra"
+	"github.com/dustin/go-humanize"
 	"regexp"
 	"text/template"
 	"bytes"
+    "os/signal"
+    "syscall"
 )
 type uploadCmdArgs struct {
  RecursiveFlag bool
  GenerateSummaryDoc bool
+ DryrunFlag bool
 }
 
+func setupInterrupt(ctx *Context, toUpload *[]scannedFileInfo) chan bool {
+
+    sigs := make(chan os.Signal, 1)
+    done := make(chan bool, 1)
+
+    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+    go func() {
+        sig := <-sigs
+        fmt.Println()
+		fmt.Println(sig)
+		report(ctx, uploadedFiles)
+		notUploadedYet := 0
+		for _,v := range *toUpload {
+			if !v.Uploaded {
+				notUploadedYet++
+			}
+		}
+		messageStdErr(fmt.Sprintf("%d files weren't uploaded:", notUploadedYet))
+		for _,v := range *toUpload {
+			if ! v.Uploaded {
+				messageStdErr(v.Path)
+			}
+		}
+        os.Exit(1)
+    }()
+    return done
+}
+
+type scannedFileInfo struct {
+	Path string
+	Info os.FileInfo
+	Uploaded bool
+}
+var uploadedFiles = make ([]*rspace.FileInfo,0) 
 var uploadArgsArg uploadCmdArgs
 // uploadCmd represents the upload command
  var uploadCmd = &cobra.Command{
@@ -73,37 +112,49 @@ func uploadArgs (ctx *Context, args[]string ) {
 	// fail fast if files can't be read
 	validateArguments(args)
 	
-	var uploadedFiles = make ([]*rspace.FileInfo,0) 
+	var filesToUpload []scannedFileInfo = make([]scannedFileInfo,0)
+	setupInterrupt(ctx, &filesToUpload)
 	for _, filePath := range args {
 		filePath, _ = filepath.Abs(filePath)
 		fileInfo, _ := os.Stat(filePath)
 		if fileInfo.IsDir() {
 			messageStdErr("Scanning for files in " +  fileInfo.Name())
-			var filesInDir []string
 			if uploadArgsArg.RecursiveFlag {
-				filepath.Walk(filePath, visit(&filesInDir) )
+				filepath.Walk(filePath, visit(&filesToUpload) )
 			} else {
-				readSingleDir(filePath, &filesInDir)
+				readSingleDir(filePath, &filesToUpload)
 			}
-			messageStdErr(fmt.Sprintf("Found %d files to upload in %s",
-				len(filesInDir), fileInfo.Name()))
-			for _, fileInDir := range filesInDir {
-				fileInfo :=	postFile(ctx, fileInDir);
-				if fileInfo != nil {
-					uploadedFiles = append(uploadedFiles, fileInfo)
-				}
-			}
+			
 		} else {
-			fileInfo :=	postFile(ctx, filePath);
-			if fileInfo != nil {
-				uploadedFiles = append(uploadedFiles, fileInfo)
-			}
+			info,_:= os.Stat(filePath)
+			filesToUpload = append(filesToUpload, scannedFileInfo{filePath,info,false})
+		}
+	}
+	messageStdErr(fmt.Sprintf("Found %d files to upload - total amount to upload is %s",len(filesToUpload),
+	 humanize.Bytes(sumFileSize(filesToUpload))))
+	for _, fileToUpload := range filesToUpload {
+		fileInfo :=	postFile(ctx, &fileToUpload);
+		fmt.Println(fileToUpload)
+		if fileInfo != nil {
+			uploadedFiles = append(uploadedFiles, fileInfo)
 		}
 	}
 	report(ctx, uploadedFiles)
  }
 
+ func sumFileSize(toUpload []scannedFileInfo) uint64 {
+	 var sum int64 = 0
+	 for _,v :=range toUpload {
+		 sum += v.Info.Size()
+	 }
+	 return uint64(sum)
+ }
+
  func report(ctx *Context, uploaded []*rspace.FileInfo) {
+	if uploadArgsArg.DryrunFlag {
+		messageStdErr(fmt.Sprintf("File upload would upload %d files", len(uploaded)))
+		return;
+	}
 	if uploadArgsArg.GenerateSummaryDoc {
 		contentStr := generateSummaryContent(uploaded)
 		summaryDocInfo:=ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary","", contentStr)
@@ -141,16 +192,17 @@ func uploadArgs (ctx *Context, args[]string ) {
 	return baseResults
 }
  // reads non . files from a single folder
- func readSingleDir(filePath string, files *[]string) {
+ func readSingleDir(filePath string, files *[]scannedFileInfo) {
 
 	fileInfos,_:= ioutil.ReadDir(filePath)
 	for _,inf:=range fileInfos {
 		if !inf.IsDir() && !isDot(inf) {
-				*files = append(*files, filePath + string(os.PathSeparator) +inf.Name())
+				path := filePath + string(os.PathSeparator) +inf.Name()
+				*files = append(*files, scannedFileInfo{path,inf,false})
 		}
 	}
  }
-func visit (files *[]string) filepath.WalkFunc {
+func visit (files *[]scannedFileInfo) filepath.WalkFunc {
 	return func  (path string, info os.FileInfo, err error) error {
 		// always   ignore '.' folders, don't descend
 		messageStdErr("processing " + path)
@@ -160,7 +212,7 @@ func visit (files *[]string) filepath.WalkFunc {
 		}
 		// always add non . files
 		if !info.IsDir() && !isDot(info) {
-			*files = append(*files, path)
+			*files = append(*files, scannedFileInfo{path,info,false})
 			return nil
 		}
 		return nil
@@ -171,19 +223,24 @@ func isDot(info os.FileInfo) bool {
 	match,_ :=  regexp.MatchString("^\\.[A-Za-z0-9\\-_]+", info.Name())
 	return match
 }
-func postFile (ctx *Context, filePath string) *rspace.FileInfo {
+func postFile (ctx *Context, fileInfo *scannedFileInfo) *rspace.FileInfo {
+	filePath := fileInfo.Path
+	if uploadArgsArg.DryrunFlag {
+		return &rspace.FileInfo{}
+	}
 	messageStdErr("Uploading: " + filePath)
 	file, err := ctx.WebClient.UploadFile(filePath)
 	if err != nil {
 		// other files might upload OK, so don't exit here
 		messageStdErr(err.Error())
 	}
+	fileInfo.Uploaded = true
 	return file
 }
 func init() {
 	elnCmd.AddCommand(uploadCmd)
-	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false,
-	"If uploading a folder, uploads contents recursively.")
+	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false,	"If uploading a folder, uploads contents recursively.")
+	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.DryrunFlag, "dry-run", false,"Performs a dry-run, reports on what would be uploaded")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.GenerateSummaryDoc,
 		 "add-summary", false, "Generate a summary document containing links to uploaded files")
 }

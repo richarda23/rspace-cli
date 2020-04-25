@@ -8,6 +8,8 @@ import (
 	"strings"
 	"rspace"
 	"math"
+	"regexp"
+	"strconv"
 	//"errors"
 )
 
@@ -24,6 +26,24 @@ func exitWithErr(err error) {
 }
 func messageStdErr(message string) {
 	fmt.Fprintln(os.Stderr, message)
+}
+
+// idFromGlobalId matches either globalId string or a numeric id, returning
+// the numeric id or an Error if input string cannot be parsed
+func idFromGlobalId (globalId string) (int, error) {
+	v,_:=strconv.Atoi(globalId)
+	if v > 0 {
+		return v,nil
+	}
+
+	match,err:= regexp.MatchString("^[A-Z]{2}\\d+", globalId)
+	if match {
+		globalId=globalId[2:] //handle globalId
+		v,_:=strconv.Atoi(globalId)
+		return v,nil
+	} else {
+		return 0, err
+	}
 }
 func prettyMarshal(anything interface{}) string {
 	bytes, _ := json.MarshalIndent(anything, "", "\t")

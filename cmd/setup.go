@@ -110,6 +110,18 @@ func validateArrayContains(validTerms []string, toTest []string) bool {
 func validateOutputFormat(toTest outputFmt) bool {
 	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
 }
+// returns an io.Writer for a log file. If logfile is empty, return default writer.
+func initLogWriter (logfile string, defaultWriter io.Writer) io.Writer {
+	if len(logfile) == 0 {
+		return defaultWriter
+	} else {
+		file, err := os.Create(logfile)
+		if err != nil {
+			exitWithErr(err)
+		}
+		return file
+	}
+}
 
 // attempts to open outfile, if set. If is not set, returns std.out writer
 func initOutputWriter(outfile string) io.Writer {

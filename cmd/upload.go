@@ -33,9 +33,10 @@ type uploadCmdArgs struct {
  RecursiveFlag bool
  GenerateSummaryDoc bool
  DryrunFlag bool
+ LogfileArg string
 }
 
-func setupInterrupt(ctx *Context, toUpload *[]scannedFileInfo) chan bool {
+func setupInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
 
     sigs := make(chan os.Signal, 1)
     done := make(chan bool, 1)
@@ -53,16 +54,21 @@ func setupInterrupt(ctx *Context, toUpload *[]scannedFileInfo) chan bool {
 				notUploadedYet++
 			}
 		}
-		messageStdErr(fmt.Sprintf("%d files weren't uploaded:", notUploadedYet))
-		for _,v := range *toUpload {
-			if ! v.Uploaded {
-				messageStdErr(v.Path)
+		if notUploadedYet > 0 {
+			logWriter := initLogWriter(uploadArgsArg.LogfileArg, os.Stderr)
+			summary :=fmt.Sprintf("%d files weren't uploaded:", notUploadedYet)
+			fmt.Fprintln(logWriter, summary)
+			for _,v := range *toUpload {
+				if ! v.Uploaded {
+					fmt.Fprintln(logWriter, v.Path)
+				}
 			}
 		}
         os.Exit(1)
     }()
     return done
 }
+
 
 type scannedFileInfo struct {
 	Path string
@@ -112,8 +118,7 @@ func uploadArgs (ctx *Context, args[]string ) {
 	// fail fast if files can't be read
 	validateArguments(args)
 	
-	var filesToUpload []scannedFileInfo = make([]scannedFileInfo,0)
-	setupInterrupt(ctx, &filesToUpload)
+	var filesToUpload []*scannedFileInfo = make([]*scannedFileInfo,0)
 	for _, filePath := range args {
 		filePath, _ = filepath.Abs(filePath)
 		fileInfo, _ := os.Stat(filePath)
@@ -124,17 +129,16 @@ func uploadArgs (ctx *Context, args[]string ) {
 			} else {
 				readSingleDir(filePath, &filesToUpload)
 			}
-			
 		} else {
 			info,_:= os.Stat(filePath)
-			filesToUpload = append(filesToUpload, scannedFileInfo{filePath,info,false})
+			filesToUpload = append(filesToUpload, &scannedFileInfo{filePath,info,false})
 		}
 	}
 	messageStdErr(fmt.Sprintf("Found %d files to upload - total amount to upload is %s",len(filesToUpload),
-	 humanize.Bytes(sumFileSize(filesToUpload))))
+			humanize.Bytes(sumFileSize(filesToUpload))))
+	setupInterrupt(ctx, &filesToUpload)
 	for _, fileToUpload := range filesToUpload {
-		fileInfo :=	postFile(ctx, &fileToUpload);
-		fmt.Println(fileToUpload)
+		fileInfo :=	postFile(ctx, fileToUpload);
 		if fileInfo != nil {
 			uploadedFiles = append(uploadedFiles, fileInfo)
 		}
@@ -142,7 +146,7 @@ func uploadArgs (ctx *Context, args[]string ) {
 	report(ctx, uploadedFiles)
  }
 
- func sumFileSize(toUpload []scannedFileInfo) uint64 {
+ func sumFileSize(toUpload []*scannedFileInfo) uint64 {
 	 var sum int64 = 0
 	 for _,v :=range toUpload {
 		 sum += v.Info.Size()
@@ -192,17 +196,17 @@ func uploadArgs (ctx *Context, args[]string ) {
 	return baseResults
 }
  // reads non . files from a single folder
- func readSingleDir(filePath string, files *[]scannedFileInfo) {
+ func readSingleDir(filePath string, files *[]*scannedFileInfo) {
 
 	fileInfos,_:= ioutil.ReadDir(filePath)
 	for _,inf:=range fileInfos {
 		if !inf.IsDir() && !isDot(inf) {
 				path := filePath + string(os.PathSeparator) +inf.Name()
-				*files = append(*files, scannedFileInfo{path,inf,false})
+				*files = append(*files, &scannedFileInfo{path,inf,false})
 		}
 	}
  }
-func visit (files *[]scannedFileInfo) filepath.WalkFunc {
+func visit (files *[]*scannedFileInfo) filepath.WalkFunc {
 	return func  (path string, info os.FileInfo, err error) error {
 		// always   ignore '.' folders, don't descend
 		messageStdErr("processing " + path)
@@ -212,7 +216,7 @@ func visit (files *[]scannedFileInfo) filepath.WalkFunc {
 		}
 		// always add non . files
 		if !info.IsDir() && !isDot(info) {
-			*files = append(*files, scannedFileInfo{path,info,false})
+			*files = append(*files, &scannedFileInfo{path,info,false})
 			return nil
 		}
 		return nil
@@ -241,6 +245,7 @@ func init() {
 	elnCmd.AddCommand(uploadCmd)
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false,	"If uploading a folder, uploads contents recursively.")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.DryrunFlag, "dry-run", false,"Performs a dry-run, reports on what would be uploaded")
+	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.LogfileArg, "logfile", "","A log file to record upload progress, if not set will log to standard error")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.GenerateSummaryDoc,
 		 "add-summary", false, "Generate a summary document containing links to uploaded files")
 }

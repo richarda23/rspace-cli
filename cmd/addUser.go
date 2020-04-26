@@ -53,7 +53,7 @@ var addUserCmd = &cobra.Command{
 func validateFlags () *rspace.UserPost {
 	pwd,err := ioutil.ReadFile(userArgs.PasswordFileArg)
 	if err != nil {
-		exitWithErr(err)
+		exitWithStdErrMsg("No password file supplied. Please put user password in a file and use the 'pwdfile' argument")
 	}
 	builder := &rspace.UserPostBuilder{}
 	builder.Password(string(pwd)).Username(userArgs.UsernameArg)

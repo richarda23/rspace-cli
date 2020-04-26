@@ -8,7 +8,6 @@ import (
 	"os"
 	"rspace"
 	"strings"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -19,6 +18,7 @@ const (
 
 var (
 	validOutputFormats = []string{"json", "csv", "quiet", "table"}
+	// for listTree
 	validTreeFilters   = []string{"document", "notebook", "folder"}
 	validSortOrders    = []string{"asc", "desc"}
 	validRecordOrders  = []string{"name", "created", "lastModified"}
@@ -39,13 +39,14 @@ func (ft outputFmt) isTab() bool {
 func (ft outputFmt) isQuiet() bool {
 	return ft == "quiet"
 }
-
+// Context maintains references to the webClient and result Writers
 type Context struct {
 	WebClient *rspace.RsWebClient
 	Writer    io.Writer
 	Format    outputFmt
 }
 
+//Writes the result of a command to one of the supported output formats
 func (ctx *Context) writeResult(formatter ResultListFormatter) {
 	if ctx.Format.isJson() {
 		ctx.write(formatter.ToJson())
@@ -57,11 +58,12 @@ func (ctx *Context) writeResult(formatter ResultListFormatter) {
 		printTable(ctx, formatter.ToTable())
 	}
 }
-
+// writes a string to the output stream (either stdout or a defined file)
 func (ctx *Context) write(toWrite string) {
 	fmt.Fprintln(ctx.Writer, toWrite)
 }
 
+// main initialisation method. Creates an RsWebClient, output writer and format
 func initialiseContext() *Context {
 	_validateFlagArgs()
 	outputFormat = outputFmt(outputFormatArg)
@@ -109,6 +111,7 @@ func validateArrayContains(validTerms []string, toTest []string) bool {
 	}
 	return true
 }
+// asserts that an outputFmt argument is valid
 func validateOutputFormat(toTest outputFmt) bool {
 	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
 }
@@ -138,16 +141,20 @@ func initOutputWriter(outfile string) io.Writer {
 	}
 }
 
+// reads apikey and url from viper configuration,
+// then sets these into an RsWebClient instance
 func initWebClient() *rspace.RsWebClient {
-	urlCfg:=viper.Get(BASE_URL_ENV_NAME)
-	if len(urlCfg == 0 {
+	urlCfg,ok:=viper.Get(BASE_URL_ENV_NAME).(string)
+	if !ok || len(urlCfg) == 0 {
 		exitWithStdErrMsg("No URL for RSpace  detected")
 	}
-	url, _ := url.Parse(getenv(BASE_URL_ENV_NAME))
-	apikey := getenv(APIKEY_ENV_NAME)
-	if len(apikey) == 0 {
+	url, _ := url.Parse(urlCfg)
+	messageStdErr("RSpace URL: " + urlCfg)
+	apikey,ok := viper.Get(APIKEY_ENV_NAME).(string)
+	if !ok || len(apikey) == 0 {
 		exitWithStdErrMsg("No API key detected")
 	}
+	messageStdErr("Api key:" + apikey[0:4] + "...")
 	webClient := rspace.NewWebClient(url, apikey)
 	return webClient
 }

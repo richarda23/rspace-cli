@@ -51,14 +51,14 @@ func doDownload (ctx *Context, ids []int) *FileListFormatter {
 	var results  = make([]*rspace.FileInfo, 0)
 	for _,id := range ids {
 		info,err :=ctx.WebClient.Download(id, dArgs.OutfolderArg)
-		results = append(results, info)
 		if err != nil {
 			messageStdErr(err.Error())
+		} else {			
+			results = append(results, info)
 		}
 	}
 	var fal = FileArrayList{results}
 	return &FileListFormatter{fal}
-	
 }
 
 func validateDownloadArgs (args [] string) []int{

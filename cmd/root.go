@@ -45,7 +45,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	// specify config file
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rspace-client)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rspace)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -61,7 +61,7 @@ func initConfig() {
 		}
 		// Search config in home directory with name ".rspace-client" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".rspace-client")
+		viper.SetConfigName(".rspace")
 		viper.SetConfigType("env")
 	}
 

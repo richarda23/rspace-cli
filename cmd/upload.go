@@ -45,8 +45,7 @@ func setupInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
 
     go func() {
         sig := <-sigs
-        fmt.Println()
-		fmt.Println(sig)
+		messageStdErr(sig.String())
 		report(ctx, uploadedFiles)
 		notUploadedYet := 0
 		for _,v := range *toUpload {
@@ -80,21 +79,28 @@ var uploadArgsArg uploadCmdArgs
 // uploadCmd represents the upload command
  var uploadCmd = &cobra.Command{
 	Use:   "upload",
-	Short: "Upload one or 'more files",
+	Short: "Upload one or more files or folders",
 	Long: ` Upload files. Add files and folders to the command line. 
 	By default, folder contents aren't uploaded recursively.
 	
 	Use the --recursive flag to upload all folder tree contents.
 	
-	The folder structure is flattened in RSpace. Files are uploaded to the target folder.
+	Any folder structure in the input is flattened in RSpace. Files are uploaded to the target folder.
 	
-	If not set, files will be uploaded to the appropriate 'Api Inbox' Gallery folders,
+	If explicit folder is not set, files will be uploaded to the appropriate 'Api Inbox' Gallery folders,
 	depending on the file type. 
 
 	Files or folder names starting with '.' are ignored. But you can use '.' as an argument
 	to upload the current folder, e.g.
 
 	rspace eln upload . --recursive
+
+	The --add-summary flag creates a document in your Home Folder with links to all 
+	the uploaded files, as a reference to the uploaded files.
+
+	If you are uploading many files, and cancel the operation while it is still running by a Ctrl-C
+	or other interrupt signal, the files *not* uploaded will be listed in stderr or in a file
+	specified by the --logfile argument.
 	`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -160,15 +166,19 @@ func uploadArgs (ctx *Context, args[]string ) {
 		return;
 	}
 	if uploadArgsArg.GenerateSummaryDoc {
-		contentStr := generateSummaryContent(uploaded)
-		summaryDocInfo:=ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary","", contentStr)
-		messageStdErr("Created summary with id " + summaryDocInfo.GlobalId)
+			addSummaryDoc (ctx, uploaded)
 	}
 	messageStdErr(fmt.Sprintf("Reporting %d results:", len(uploaded)))
 
 	var fal FileArrayList = FileArrayList{uploaded}
 	var formatter FileListFormatter = FileListFormatter{fal}
 	ctx.writeResult(&formatter)
+ }
+
+ func addSummaryDoc (ctx *Context, uploaded []*rspace.FileInfo ){
+	contentStr := generateSummaryContent(uploaded)
+	summaryDocInfo:=ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary","", contentStr)
+	messageStdErr("Created summary with id " + summaryDocInfo.GlobalId)
  }
  // populates an HTML  table template with links to uploaded files
  func generateSummaryContent(results []*rspace.FileInfo) string {

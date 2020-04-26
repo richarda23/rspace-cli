@@ -8,6 +8,8 @@ import (
 	"os"
 	"rspace"
 	"strings"
+	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -137,7 +139,8 @@ func initOutputWriter(outfile string) io.Writer {
 }
 
 func initWebClient() *rspace.RsWebClient {
-	if len(getenv(BASE_URL_ENV_NAME)) == 0 {
+	urlCfg:=viper.Get(BASE_URL_ENV_NAME)
+	if len(urlCfg == 0 {
 		exitWithStdErrMsg("No URL for RSpace  detected")
 	}
 	url, _ := url.Parse(getenv(BASE_URL_ENV_NAME))

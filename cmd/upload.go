@@ -19,11 +19,7 @@ import (
 	"fmt"
 	"rspace"
 	"os"
-	"path/filepath"
-	"io/ioutil"
 	"github.com/spf13/cobra"
-	"github.com/dustin/go-humanize"
-	"regexp"
 	"text/template"
 	"bytes"
     "os/signal"
@@ -68,12 +64,6 @@ func setupInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
     return done
 }
 
-
-type scannedFileInfo struct {
-	Path string
-	Info os.FileInfo
-	Uploaded bool
-}
 var uploadedFiles = make ([]*rspace.FileInfo,0) 
 var uploadArgsArg uploadCmdArgs
 // uploadCmd represents the upload command
@@ -109,39 +99,13 @@ var uploadArgsArg uploadCmdArgs
 	},
 }
 
-func validateArguments( args []string ) {
-	for _, filePath := range args {
-		var err error
-		filePath, err = filepath.Abs(filePath)
-		_, err = os.Stat(filePath)
-		if err != nil {
-			exitWithErr(err)
-		}
-	}
-}
-
 func uploadArgs (ctx *Context, args[]string ) {
 	// fail fast if files can't be read
-	validateArguments(args)
-	
-	var filesToUpload []*scannedFileInfo = make([]*scannedFileInfo,0)
-	for _, filePath := range args {
-		filePath, _ = filepath.Abs(filePath)
-		fileInfo, _ := os.Stat(filePath)
-		if fileInfo.IsDir() {
-			messageStdErr("Scanning for files in " +  fileInfo.Name())
-			if uploadArgsArg.RecursiveFlag {
-				filepath.Walk(filePath, visit(&filesToUpload) )
-			} else {
-				readSingleDir(filePath, &filesToUpload)
-			}
-		} else {
-			info,_:= os.Stat(filePath)
-			filesToUpload = append(filesToUpload, &scannedFileInfo{filePath,info,false})
-		}
-	}
+	validateInputFilePaths(args)
+	filesToUpload := scanFiles(args, uploadArgsArg.RecursiveFlag)
+
 	messageStdErr(fmt.Sprintf("Found %d files to upload - total amount to upload is %s",len(filesToUpload),
-			humanize.Bytes(sumFileSize(filesToUpload))))
+			sumFileSizeHuman(filesToUpload)))
 	setupInterrupt(ctx, &filesToUpload)
 	for _, fileToUpload := range filesToUpload {
 		fileInfo :=	postFile(ctx, fileToUpload);
@@ -150,14 +114,6 @@ func uploadArgs (ctx *Context, args[]string ) {
 		}
 	}
 	report(ctx, uploadedFiles)
- }
-
- func sumFileSize(toUpload []*scannedFileInfo) uint64 {
-	 var sum int64 = 0
-	 for _,v :=range toUpload {
-		 sum += v.Info.Size()
-	 }
-	 return uint64(sum)
  }
 
  func report(ctx *Context, uploaded []*rspace.FileInfo) {
@@ -205,38 +161,7 @@ func uploadArgs (ctx *Context, args[]string ) {
 	}
 	return baseResults
 }
- // reads non . files from a single folder
- func readSingleDir(filePath string, files *[]*scannedFileInfo) {
-
-	fileInfos,_:= ioutil.ReadDir(filePath)
-	for _,inf:=range fileInfos {
-		if !inf.IsDir() && !isDot(inf) {
-				path := filePath + string(os.PathSeparator) +inf.Name()
-				*files = append(*files, &scannedFileInfo{path,inf,false})
-		}
-	}
- }
-func visit (files *[]*scannedFileInfo) filepath.WalkFunc {
-	return func  (path string, info os.FileInfo, err error) error {
-		// always   ignore '.' folders, don't descend
-		messageStdErr("processing " + path)
-		if info.IsDir() && isDot(info) {
-			messageStdErr("Skipping .folder " + path)
-			return filepath.SkipDir
-		}
-		// always add non . files
-		if !info.IsDir() && !isDot(info) {
-			*files = append(*files, &scannedFileInfo{path,info,false})
-			return nil
-		}
-		return nil
-	}
-}
-func isDot(info os.FileInfo) bool {
-	//return filepath.Base(info.Name())[0] == '.'
-	match,_ :=  regexp.MatchString("^\\.[A-Za-z0-9\\-_]+", info.Name())
-	return match
-}
+ 
 func postFile (ctx *Context, fileInfo *scannedFileInfo) *rspace.FileInfo {
 	filePath := fileInfo.Path
 	if uploadArgsArg.DryrunFlag {

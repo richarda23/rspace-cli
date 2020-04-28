@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"github.com/dustin/go-humanize"
+	"strings"
 )
 // holds information about scanned local files, and whether they have been processed yet
 type scannedFileInfo struct {
@@ -26,7 +27,33 @@ func validateInputFilePaths ( paths []string ) {
 	}
 }
 
-func scanFiles (paths []string, recurse bool) []*scannedFileInfo {
+// filters scannedFileInfo
+type acceptFileFilter func (info *scannedFileInfo) bool
+
+// default acceptFileFilter than accepts all files
+func acceptAll () acceptFileFilter {
+	return func( info *scannedFileInfo) bool {
+		return true
+	}
+}
+// default acceptFileFilter than rejects all files
+func rejectAll () acceptFileFilter {
+	return func( info *scannedFileInfo) bool {
+		return false
+	}
+}
+
+func acceptMsDoc () acceptFileFilter {
+	return func( info *scannedFileInfo) bool {
+		ext := strings.ToLower(filepath.Ext(info.Path))
+		messageStdErr(ext)
+		return ext == ".doc" || ext == ".odt" || ext == ".docx"
+	}
+}
+
+
+
+func scanFiles (paths []string, recurse bool, accept acceptFileFilter) []*scannedFileInfo {
 	var filesToUpload []*scannedFileInfo = make([]*scannedFileInfo,0)
 	for _, filePath := range paths {
 		filePath, _ = filepath.Abs(filePath)
@@ -43,7 +70,14 @@ func scanFiles (paths []string, recurse bool) []*scannedFileInfo {
 			filesToUpload = append(filesToUpload, &scannedFileInfo{filePath,info,false})
 		}
 	}
-	return filesToUpload
+	// now filter
+	var rc []*scannedFileInfo = make([]*scannedFileInfo,0)
+	for _,v := range filesToUpload {
+		if accept(v) {
+			rc = append(rc, v)
+		}
+	}
+	return rc
 }
 
 func sumFileSize(toUpload []*scannedFileInfo) uint64 {

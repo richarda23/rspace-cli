@@ -102,7 +102,7 @@ var uploadArgsArg uploadCmdArgs
 func uploadArgs (ctx *Context, args[]string ) {
 	// fail fast if files can't be read
 	validateInputFilePaths(args)
-	filesToUpload := scanFiles(args, uploadArgsArg.RecursiveFlag)
+	filesToUpload := scanFiles(args, uploadArgsArg.RecursiveFlag, acceptAll())
 
 	messageStdErr(fmt.Sprintf("Found %d files to upload - total amount to upload is %s",len(filesToUpload),
 			sumFileSizeHuman(filesToUpload)))

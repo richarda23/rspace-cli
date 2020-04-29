@@ -46,16 +46,14 @@ func rejectAll () acceptFileFilter {
 func acceptMsDoc () acceptFileFilter {
 	return func( info *scannedFileInfo) bool {
 		ext := strings.ToLower(filepath.Ext(info.Path))
-		messageStdErr(ext)
 		return ext == ".doc" || ext == ".odt" || ext == ".docx"
 	}
 }
 
-
-
 func scanFiles (paths []string, recurse bool, accept acceptFileFilter) []*scannedFileInfo {
 	var filesToUpload []*scannedFileInfo = make([]*scannedFileInfo,0)
 	for _, filePath := range paths {
+		messageStdErr("processing " + filePath)
 		filePath, _ = filepath.Abs(filePath)
 		fileInfo, _ := os.Stat(filePath)
 		if fileInfo.IsDir() {
@@ -110,7 +108,7 @@ func readSingleDir(filePath string, files *[]*scannedFileInfo) {
 func visit (files *[]*scannedFileInfo) filepath.WalkFunc {
 	return func  (path string, info os.FileInfo, err error) error {
 		// always   ignore '.' folders, don't descend
-		messageStdErr("processing " + path)
+
 		if info.IsDir() && isDot(info) {
 			messageStdErr("Skipping .folder " + path)
 			return filepath.SkipDir

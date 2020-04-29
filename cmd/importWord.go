@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"rspace"
 	"os"
 	"github.com/spf13/cobra"
@@ -28,6 +29,7 @@ type importWordCmdArgs struct {
  GenerateSummaryDoc bool
  DryrunFlag bool
  LogfileArg string
+ TargetFolder int
 }
 
 func setUpImportInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
@@ -113,7 +115,45 @@ func importArgs (ctx *Context, args[]string ) {
  type DocArrayList struct {
 	docList []*rspace.DocumentInfo
  }
- func reportImport(ctx *Context, uploaded []*rspace.DocumentInfo) {
+
+ type DocArrayListFormatter struct {
+	 DocArrayList
+ }
+func (fmt *DocArrayListFormatter) ToJson() string {
+	return prettyMarshal(fmt.DocArrayList.docList)
+}
+
+func (fmt *DocArrayListFormatter) ToQuiet() []identifiable{
+	return  toIdentifiableDoc(fmt.DocArrayList.docList)
+}
+
+func (fmt *DocArrayListFormatter) ToTable() *TableResult {
+	results := fmt.DocArrayList.docList
+
+	//baseInfos := fileListToBaseInfoList(results)
+	///nameColWidth := getMaxNameLength(baseInfos)
+	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},
+	  columnDef{"Name", 25}, 
+	 columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH}}
+
+	rows := make([][]string, 0)
+	for _, res := range results {
+		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
+			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH]}
+		rows = append(rows, data)
+	}
+	return &TableResult{headers, rows}
+}
+
+func toIdentifiableDoc (results []*rspace.DocumentInfo) []identifiable {
+	rows := make([]identifiable, 0)
+	for _, res := range results {
+		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
+	}
+	return rows
+}
+
+func reportImport(ctx *Context, uploaded []*rspace.DocumentInfo) {
 	if importArgsArg.DryrunFlag {
 		messageStdErr(fmt.Sprintf("File upload would upload %d files", len(uploaded)))
 		return;
@@ -122,7 +162,7 @@ func importArgs (ctx *Context, args[]string ) {
 
 	var dal DocArrayList = DocArrayList{uploaded}
 	//TODO FIX THIS, implement DocListFormatter
-	var formatter DocListFormatter = DocListFormatter{dal}
+	var formatter DocArrayListFormatter = DocArrayListFormatter{dal}
 	ctx.writeResult(&formatter)
  }
 
@@ -143,7 +183,7 @@ func importFile (ctx *Context, fileInfo *scannedFileInfo) *rspace.DocumentInfo {
 		return &rspace.DocumentInfo{}
 	}
 	messageStdErr("Uploading: " + filePath)
-	doc, err := ctx.WebClient.ImportWord(filePath, 0, 0)
+	doc, err := ctx.WebClient.ImportWord(filePath, importArgsArg.TargetFolder, 0)
 	if err != nil {
 		// other files might upload OK, so don't exit here
 		messageStdErr(err.Error())
@@ -157,6 +197,9 @@ func init() {
 	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.RecursiveFlag, "recursive", false,	"If uploading a folder, uploads contents recursively.")
 	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.DryrunFlag, "dry-run", false,"Performs a dry-run, reportImports on what would be uploaded")
 	importWordCmd.PersistentFlags().StringVar(&importArgsArg.LogfileArg, "logfile", "","A log file to record upload progress, if not set will log to standard error")
+	importWordCmd.PersistentFlags().IntVar(&importArgsArg.TargetFolder, 
+		"folder", 0,"ID of Target folder for imported Word files")
+	
 	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.GenerateSummaryDoc,
 		 "add-summary", false, "Generate a summary document containing links to uploaded files")
 }

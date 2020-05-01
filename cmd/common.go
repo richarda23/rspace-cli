@@ -4,12 +4,12 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"os"
-	"strings"
 	"github.com/richarda23/rspace-client-go/rspace"
 	"math"
+	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	//"errors"
 )
 
@@ -30,17 +30,17 @@ func messageStdErr(message string) {
 
 // idFromGlobalId matches either globalId string or a numeric id, returning
 // the numeric id or an Error if input string cannot be parsed
-func idFromGlobalId (globalId string) (int, error) {
-	v,_:=strconv.Atoi(globalId)
+func idFromGlobalId(globalId string) (int, error) {
+	v, _ := strconv.Atoi(globalId)
 	if v > 0 {
-		return v,nil
+		return v, nil
 	}
 
-	match,err:= regexp.MatchString("^[A-Z]{2}\\d+", globalId)
+	match, err := regexp.MatchString("^[A-Z]{2}\\d+", globalId)
 	if match {
-		globalId=globalId[2:] //handle globalId
-		v,_:=strconv.Atoi(globalId)
-		return v,nil
+		globalId = globalId[2:] //handle globalId
+		v, _ := strconv.Atoi(globalId)
+		return v, nil
 	} else {
 		return 0, err
 	}
@@ -50,7 +50,7 @@ func prettyMarshal(anything interface{}) string {
 	return string(bytes)
 }
 
-type columnDef struct { 
+type columnDef struct {
 	Title string
 	Width int
 }
@@ -60,13 +60,11 @@ type TableResult struct {
 	Content [][]string
 }
 
-
 type ResultListFormatter interface {
 	ToJson() string
 	ToTable() *TableResult
 	ToQuiet() []identifiable
 }
-
 
 func printTable(ctx *Context, table *TableResult) {
 	printTableHeaders(ctx, table.Headers)
@@ -126,15 +124,14 @@ func printIds(ctx *Context, source []identifiable) {
 	}
 }
 
-// gets the length of the longest name in the result list 
+// gets the length of the longest name in the result list
 func getMaxNameLength(results []rspace.BasicInfo) int {
-	var maxPossible float64  = 25
+	var maxPossible float64 = 25
 	var currLongest float64 = 0
 	for _, res := range results {
-		if nameLen:=float64(len(res.GetName())); nameLen > currLongest {
+		if nameLen := float64(len(res.GetName())); nameLen > currLongest {
 			currLongest = math.Min(maxPossible, nameLen)
 		}
-	}	
-	return int( currLongest)
+	}
+	return int(currLongest)
 }
-

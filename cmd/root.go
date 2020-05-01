@@ -17,10 +17,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"os"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var cfgFile string
@@ -29,7 +29,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "rspace-client",
 	Short: "RSpace CLI",
-	Long: "CLI for RSpace - make API calls to RSpace ",
+	Long:  "CLI for RSpace - make API calls to RSpace ",
 	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 

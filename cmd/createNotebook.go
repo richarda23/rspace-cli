@@ -16,11 +16,13 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
+
 var notebookName string
 var parentfolder string
+
 // createNotebookCmd represents the createNotebook command
 var createNotebookCmd = &cobra.Command{
 	Use:   "createNotebook",
@@ -29,8 +31,8 @@ var createNotebookCmd = &cobra.Command{
 	  create-notebook --name nbname --folder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		post := rspace.FolderPost{IsNotebook:true,}
-		context:=initialiseContext()  
+		post := rspace.FolderPost{IsNotebook: true}
+		context := initialiseContext()
 		doCreateFolder(context, notebookName, parentfolder, post)
 	},
 }

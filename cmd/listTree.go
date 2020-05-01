@@ -22,39 +22,41 @@ import (
 	"strings"
 )
 
-var folderId int 
+var folderId int
 var treeFilterArg string
+
 // listTreeCmd represents the listTree command
 var listTreeCmd = &cobra.Command{
 	Use:   "listTree",
 	Short: "Lists the contents of a folder or notebook",
-	Long: `Lists the content of the specified folder, or the home folder if no folder ID is set`,
+	Long:  `Lists the content of the specified folder, or the home folder if no folder ID is set`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		context:=initialiseContext()  
-		cfg:=configurePagination()
+		context := initialiseContext()
+		cfg := configurePagination()
 		doListTree(context, cfg)
 	},
 }
-func configurePagination () rspace.RecordListingConfig{
+
+func configurePagination() rspace.RecordListingConfig {
 	cfg := rspace.NewRecordListingConfig()
-	if len(sortOrderArg)  > 0 && validateArrayContains(validSortOrders, []string{sortOrderArg}) {
+	if len(sortOrderArg) > 0 && validateArrayContains(validSortOrders, []string{sortOrderArg}) {
 		cfg.SortOrder = sortOrderArg
 	}
-	if len(orderByArg)  > 0 && validateArrayContains(validRecordOrders, []string{orderByArg}) {
+	if len(orderByArg) > 0 && validateArrayContains(validRecordOrders, []string{orderByArg}) {
 		cfg.OrderBy = orderByArg
 	}
-	if pageSizeArg > 0  {
+	if pageSizeArg > 0 {
 		cfg.PageSize = pageSizeArg
 	}
 	return cfg
 }
-func doListTree (ctx *Context, cfg rspace.RecordListingConfig) {
-	var filters =  make([]string, 0)
-	if len (treeFilterArg) > 0 {
-		filters = strings.Split(treeFilterArg,",")
+func doListTree(ctx *Context, cfg rspace.RecordListingConfig) {
+	var filters = make([]string, 0)
+	if len(treeFilterArg) > 0 {
+		filters = strings.Split(treeFilterArg, ",")
 	}
-	folderList, err := ctx.WebClient.FolderTree(cfg, folderId, filters) 
+	folderList, err := ctx.WebClient.FolderTree(cfg, folderId, filters)
 	if err != nil {
 		exitWithErr(err)
 	}
@@ -65,31 +67,31 @@ type FolderListFormatter struct {
 	*rspace.FolderList
 }
 
-func (ds *FolderListFormatter) ToJson () string{
+func (ds *FolderListFormatter) ToJson() string {
 	return prettyMarshal(ds.FolderList)
 }
 
-func (ds *FolderListFormatter) ToQuiet () []identifiable{
+func (ds *FolderListFormatter) ToQuiet() []identifiable {
 	return toIdentifiable(ds.FolderList)
 }
 
-func (ds *FolderListFormatter) ToTable () *TableResult{
+func (ds *FolderListFormatter) ToTable() *TableResult {
 	baseInfos := resultsToBaseInfoList(ds.FolderList)
 	maxNameCol := getMaxNameLength(baseInfos)
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", maxNameCol},columnDef{"Type", 9},
-	  columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Last Modified",DISPLAY_TIMESTAMP_WIDTH}}
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"GlobalId", 10}, columnDef{"Name", maxNameCol}, columnDef{"Type", 9},
+		columnDef{"Created", DISPLAY_TIMESTAMP_WIDTH}, columnDef{"Last Modified", DISPLAY_TIMESTAMP_WIDTH}}
 
 	rows := make([][]string, 0)
 	for _, res := range ds.FolderList.Records {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name, res.Type,  res.Created[0:DISPLAY_TIMESTAMP_WIDTH],res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
+		data := []string{strconv.Itoa(res.Id), res.GlobalId, res.Name, res.Type, res.Created[0:DISPLAY_TIMESTAMP_WIDTH], res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH]}
 		rows = append(rows, data)
 
 	}
-	table:=&TableResult{headers, rows}
+	table := &TableResult{headers, rows}
 	return table
 }
 
-func toIdentifiable (results *rspace.FolderList) []identifiable {
+func toIdentifiable(results *rspace.FolderList) []identifiable {
 	rows := make([]identifiable, 0)
 	for _, res := range results.Records {
 		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
@@ -97,11 +99,11 @@ func toIdentifiable (results *rspace.FolderList) []identifiable {
 	return rows
 }
 
-func resultsToBaseInfoList (results *rspace.FolderList) []rspace.BasicInfo {
+func resultsToBaseInfoList(results *rspace.FolderList) []rspace.BasicInfo {
 	var baseResults = make([]rspace.BasicInfo, len(results.Records))
-	for i,v := range results.Records {
+	for i, v := range results.Records {
 		var x rspace.BasicInfo = v
-		baseResults [i] = x
+		baseResults[i] = x
 	}
 	return baseResults
 }
@@ -109,13 +111,13 @@ func resultsToBaseInfoList (results *rspace.FolderList) []rspace.BasicInfo {
 func init() {
 	elnCmd.AddCommand(listTreeCmd)
 	// is called directly, e.g.:
-	 listTreeCmd.Flags().IntVar(&folderId, "folder",  0, "The id of the folder or notebook to list")
-	 listTreeCmd.Flags().StringVar(&treeFilterArg, "filter",  "", "Restrict results to 1 or more of: " + strings.Join(validTreeFilters, ","))
+	listTreeCmd.Flags().IntVar(&folderId, "folder", 0, "The id of the folder or notebook to list")
+	listTreeCmd.Flags().StringVar(&treeFilterArg, "filter", "", "Restrict results to 1 or more of: "+strings.Join(validTreeFilters, ","))
 
 	initPaginationFromArgs(listTreeCmd)
 }
-func initPaginationArgs () {
-	 listTreeCmd.Flags().StringVar(&sortOrderArg, "sortOrder",  "desc", "'asc' or 'desc'")
-	 listTreeCmd.Flags().StringVar(&orderByArg, "orderBy",  "lastModified", "orders results by 'name', 'created' or 'lastModified'")
-	 listTreeCmd.Flags().IntVar(&pageSizeArg, "maxResults",  20, "Maximum number of results to retrieve")
+func initPaginationArgs() {
+	listTreeCmd.Flags().StringVar(&sortOrderArg, "sortOrder", "desc", "'asc' or 'desc'")
+	listTreeCmd.Flags().StringVar(&orderByArg, "orderBy", "lastModified", "orders results by 'name', 'created' or 'lastModified'")
+	listTreeCmd.Flags().IntVar(&pageSizeArg, "maxResults", 20, "Maximum number of results to retrieve")
 }

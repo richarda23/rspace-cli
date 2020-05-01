@@ -16,58 +16,60 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/richarda23/rspace-client-go/rspace"
-	"os"
 	"github.com/spf13/cobra"
+	"os"
+	"os/signal"
+	"syscall"
 	"text/template"
-	"bytes"
-    "os/signal"
-    "syscall"
 )
+
 type uploadCmdArgs struct {
- RecursiveFlag bool
- GenerateSummaryDoc bool
- DryrunFlag bool
- LogfileArg string
+	RecursiveFlag      bool
+	GenerateSummaryDoc bool
+	DryrunFlag         bool
+	LogfileArg         string
 }
 
 func setupInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
 
-    sigs := make(chan os.Signal, 1)
-    done := make(chan bool, 1)
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
 
-    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-    go func() {
-        sig := <-sigs
+	go func() {
+		sig := <-sigs
 		messageStdErr(sig.String())
 		report(ctx, uploadedFiles)
 		notUploadedYet := 0
-		for _,v := range *toUpload {
+		for _, v := range *toUpload {
 			if !v.Uploaded {
 				notUploadedYet++
 			}
 		}
 		if notUploadedYet > 0 {
 			logWriter := initLogWriter(uploadArgsArg.LogfileArg, os.Stderr)
-			summary :=fmt.Sprintf("%d files weren't uploaded:", notUploadedYet)
+			summary := fmt.Sprintf("%d files weren't uploaded:", notUploadedYet)
 			fmt.Fprintln(logWriter, summary)
-			for _,v := range *toUpload {
-				if ! v.Uploaded {
+			for _, v := range *toUpload {
+				if !v.Uploaded {
 					fmt.Fprintln(logWriter, v.Path)
 				}
 			}
 		}
-        os.Exit(1)
-    }()
-    return done
+		os.Exit(1)
+	}()
+	return done
 }
 
-var uploadedFiles = make ([]*rspace.FileInfo,0) 
+var uploadedFiles = make([]*rspace.FileInfo, 0)
 var uploadArgsArg uploadCmdArgs
+
 // uploadCmd represents the upload command
- var uploadCmd = &cobra.Command{
+var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "Upload one or more files or folders",
 	Long: ` Upload files. Add files and folders to the command line. 
@@ -99,45 +101,46 @@ var uploadArgsArg uploadCmdArgs
 	},
 }
 
-func uploadArgs (ctx *Context, args[]string ) {
+func uploadArgs(ctx *Context, args []string) {
 	// fail fast if files can't be read
 	validateInputFilePaths(args)
 	filesToUpload := scanFiles(args, uploadArgsArg.RecursiveFlag, acceptAll())
 
-	messageStdErr(fmt.Sprintf("Found %d files to upload - total amount to upload is %s",len(filesToUpload),
-			sumFileSizeHuman(filesToUpload)))
+	messageStdErr(fmt.Sprintf("Found %d files to upload - total amount to upload is %s", len(filesToUpload),
+		sumFileSizeHuman(filesToUpload)))
 	setupInterrupt(ctx, &filesToUpload)
 	for _, fileToUpload := range filesToUpload {
-		fileInfo :=	postFile(ctx, fileToUpload);
+		fileInfo := postFile(ctx, fileToUpload)
 		if fileInfo != nil {
 			uploadedFiles = append(uploadedFiles, fileInfo)
 		}
 	}
 	report(ctx, uploadedFiles)
- }
+}
 
- func report(ctx *Context, uploaded []*rspace.FileInfo) {
+func report(ctx *Context, uploaded []*rspace.FileInfo) {
 	if uploadArgsArg.DryrunFlag {
 		messageStdErr(fmt.Sprintf("File upload would upload %d files", len(uploaded)))
-		return;
+		return
 	}
 	if uploadArgsArg.GenerateSummaryDoc {
-			addSummaryDoc (ctx, uploaded)
+		addSummaryDoc(ctx, uploaded)
 	}
 	messageStdErr(fmt.Sprintf("Reporting %d results:", len(uploaded)))
 
 	var fal FileArrayList = FileArrayList{uploaded}
 	var formatter FileListFormatter = FileListFormatter{fal}
 	ctx.writeResult(&formatter)
- }
+}
 
- func addSummaryDoc (ctx *Context, uploaded []*rspace.FileInfo ){
+func addSummaryDoc(ctx *Context, uploaded []*rspace.FileInfo) {
 	contentStr := generateSummaryContent(uploaded)
-	summaryDocInfo:=ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary","", contentStr)
+	summaryDocInfo := ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary", "", contentStr)
 	messageStdErr("Created summary with id " + summaryDocInfo.GlobalId)
- }
- // populates an HTML  table template with links to uploaded files
- func generateSummaryContent(results []*rspace.FileInfo) string {
+}
+
+// populates an HTML  table template with links to uploaded files
+func generateSummaryContent(results []*rspace.FileInfo) string {
 	const tmpl = `
 	<table>
 	 <tr> <th>Name</th><th>Id</th><th>Link</th></tr>
@@ -151,18 +154,18 @@ func uploadArgs (ctx *Context, args[]string ) {
 
 	t.Execute(&buf, results)
 	return buf.String()
- }
+}
 
- func fileListToBaseInfoList (results []*rspace.FileInfo) []rspace.BasicInfo {
+func fileListToBaseInfoList(results []*rspace.FileInfo) []rspace.BasicInfo {
 	var baseResults = make([]rspace.BasicInfo, len(results))
-	for i,v := range results {
+	for i, v := range results {
 		var x rspace.BasicInfo = v
-		baseResults [i] = x
+		baseResults[i] = x
 	}
 	return baseResults
 }
- 
-func postFile (ctx *Context, fileInfo *scannedFileInfo) *rspace.FileInfo {
+
+func postFile(ctx *Context, fileInfo *scannedFileInfo) *rspace.FileInfo {
 	filePath := fileInfo.Path
 	if uploadArgsArg.DryrunFlag {
 		return &rspace.FileInfo{}
@@ -178,9 +181,9 @@ func postFile (ctx *Context, fileInfo *scannedFileInfo) *rspace.FileInfo {
 }
 func init() {
 	elnCmd.AddCommand(uploadCmd)
-	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false,	"If uploading a folder, uploads contents recursively.")
-	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.DryrunFlag, "dry-run", false,"Performs a dry-run, reports on what would be uploaded")
-	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.LogfileArg, "logfile", "","A log file to record upload progress, if not set will log to standard error")
+	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false, "If uploading a folder, uploads contents recursively.")
+	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.DryrunFlag, "dry-run", false, "Performs a dry-run, reports on what would be uploaded")
+	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.LogfileArg, "logfile", "", "A log file to record upload progress, if not set will log to standard error")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.GenerateSummaryDoc,
-		 "add-summary", false, "Generate a summary document containing links to uploaded files")
+		"add-summary", false, "Generate a summary document containing links to uploaded files")
 }

@@ -16,16 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-
+	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
 	"io/ioutil"
-	"github.com/richarda23/rspace-client-go/rspace"
 	//"fmt"
 )
+
 type addUserArgs struct {
- UsernameArg, FNameArg, LNameArg, EmailArg, RoleArg, AffiliationArg, PasswordFileArg string
+	UsernameArg, FNameArg, LNameArg, EmailArg, RoleArg, AffiliationArg, PasswordFileArg string
 }
+
 var userArgs = addUserArgs{}
+
 // addUserCmd represents the createNotebook command
 var addUserCmd = &cobra.Command{
 	Use:   "addUser",
@@ -42,7 +44,7 @@ var addUserCmd = &cobra.Command{
 		userPost := validateFlags()
 		ctx := initialiseContext()
 		user, err := ctx.WebClient.UserNew(userPost)
-		if err != nil  {
+		if err != nil {
 			exitWithErr(err)
 		} else {
 			ctx.write(prettyMarshal(user))
@@ -50,8 +52,8 @@ var addUserCmd = &cobra.Command{
 	},
 }
 
-func validateFlags () *rspace.UserPost {
-	pwd,err := ioutil.ReadFile(userArgs.PasswordFileArg)
+func validateFlags() *rspace.UserPost {
+	pwd, err := ioutil.ReadFile(userArgs.PasswordFileArg)
 	if err != nil {
 		exitWithStdErrMsg("No password file supplied. Please put user password in a file and use the 'pwdfile' argument")
 	}
@@ -60,11 +62,11 @@ func validateFlags () *rspace.UserPost {
 	builder.Email(rspace.Email(userArgs.EmailArg))
 	builder.FirstName(userArgs.FNameArg).LastName(userArgs.LNameArg)
 	builder.Affiliation(userArgs.AffiliationArg)
-	post,e:= builder.Role(getRoleForArg(userArgs.RoleArg)).Build()
+	post, e := builder.Role(getRoleForArg(userArgs.RoleArg)).Build()
 	if e != nil {
 		exitWithErr(e)
 	}
-	return post;
+	return post
 }
 
 func getRoleForArg(arg string) rspace.UserRoleType {

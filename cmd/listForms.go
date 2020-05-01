@@ -16,28 +16,28 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 	"strconv"
-
 )
+
 // listDocumentsCmd represents the listDocuments command
 var listFormsCmd = &cobra.Command{
 	Use:   "listForms",
 	Short: "Lists forms",
-	Long:`List forms, sorted or paginated, e.g.
+	Long: `List forms, sorted or paginated, e.g.
 
 		  rspace eln listForms --orderBy name --maxResults 100
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		context := initialiseContext()  
+		context := initialiseContext()
 		cfg := configurePagination()
 		doListForms(context, cfg)
 	},
 }
 
-func doListForms (ctx *Context, cfg rspace.RecordListingConfig) {
+func doListForms(ctx *Context, cfg rspace.RecordListingConfig) {
 	var formsList *rspace.FormList
 	var err error
 	formsList, err = ctx.WebClient.Forms(cfg)
@@ -52,11 +52,11 @@ type FormListFormatter struct {
 	*rspace.FormList
 }
 
-func (fs *FormListFormatter) ToJson () string{
+func (fs *FormListFormatter) ToJson() string {
 	return prettyMarshal(fs.FormList)
 }
 
-func (ds *FormListFormatter) ToQuiet () []identifiable{
+func (ds *FormListFormatter) ToQuiet() []identifiable {
 	rows := make([]identifiable, 0)
 	for _, res := range ds.FormList.Forms {
 		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
@@ -64,24 +64,24 @@ func (ds *FormListFormatter) ToQuiet () []identifiable{
 	return rows
 }
 
-func (ds *FormListFormatter) ToTable () *TableResult {
+func (ds *FormListFormatter) ToTable() *TableResult {
 	results := ds.FormList.Forms
 
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10}, columnDef{"Name", 25}, 
-	 columnDef{"StableId", 25}}
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"GlobalId", 10}, columnDef{"Name", 25},
+		columnDef{"StableId", 25}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
-			   res.StableId}
+		data := []string{strconv.Itoa(res.Id), res.GlobalId, res.Name,
+			res.StableId}
 		rows = append(rows, data)
 	}
 	return &TableResult{headers, rows}
-	
- }
- func toIdentifiableForm (results []*rspace.FormInfo) []identifiable {
+
+}
+func toIdentifiableForm(results []*rspace.FormInfo) []identifiable {
 	rows := make([]identifiable, 0)
-	
+
 	for _, res := range results {
 		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
 	}

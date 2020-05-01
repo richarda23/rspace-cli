@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 	"strconv"
 )
 
@@ -79,4 +79,3 @@ func init() {
 	createFolderCmd.Flags().StringVarP(&foldername, "name", "n", "", "A name for the folder")
 	createFolderCmd.Flags().StringVarP(&parentFolder, "folder", "p", "", "An id for the folder that will contain the new folder")
 }
- 

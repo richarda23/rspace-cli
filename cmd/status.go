@@ -23,9 +23,9 @@ import (
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Checks status of RSpace",
-	Long: "Gets version and current status of RSpace",
+	Long:  "Gets version and current status of RSpace",
 	Run: func(cmd *cobra.Command, args []string) {
-		context:=initialiseContext()
+		context := initialiseContext()
 		got, err := context.WebClient.Status()
 		if err != nil {
 			exitWithErr(err)

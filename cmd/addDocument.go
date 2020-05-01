@@ -16,17 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"strings"
 )
+
 type addDocArgs struct {
 	ParentfolderArg string
-	NameArg string
-	Tags string
-	ContentFile string
-	Content string
+	NameArg         string
+	Tags            string
+	ContentFile     string
+	Content         string
 }
 
 var addDocArgV = addDocArgs{}
@@ -42,29 +43,29 @@ var addDocumentCmd = &cobra.Command{
 	  tags to preserve formatting.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		context:=initialiseContext()
-		content:=getContent()
-		newDoc:=context.WebClient.NewBasicDocumentWithContent(addDocArgV.NameArg, addDocArgV.Tags, content)
+		context := initialiseContext()
+		content := getContent()
+		newDoc := context.WebClient.NewBasicDocumentWithContent(addDocArgV.NameArg, addDocArgV.Tags, content)
 		docList := rspace.DocumentList{}
 		docList.Documents = []rspace.DocumentInfo{*newDoc}
 		var dlf = DocListFormatter{&docList}
 		context.writeResult(&dlf)
-	//	doCreateFolder(context, notebookName, parentfolder, post)
+		//	doCreateFolder(context, notebookName, parentfolder, post)
 	},
 }
 
 func getContent() string {
-	if len (addDocArgV.Content) > 0 {
+	if len(addDocArgV.Content) > 0 {
 		return addDocArgV.Content
 	} else if len(addDocArgV.ContentFile) > 0 {
-		bytes,err := ioutil.ReadFile(addDocArgV.ContentFile)
+		bytes, err := ioutil.ReadFile(addDocArgV.ContentFile)
 		if err != nil {
 			exitWithErr(err)
 		}
-		lowerCaseFile:=strings.ToLower(addDocArgV.ContentFile)
+		lowerCaseFile := strings.ToLower(addDocArgV.ContentFile)
 		if strings.HasSuffix(lowerCaseFile, "html") ||
 			strings.HasSuffix(lowerCaseFile, "htm") {
-				return string(bytes)
+			return string(bytes)
 		} else {
 			return "<pre>" + string(bytes) + "</pre>"
 		}
@@ -74,7 +75,7 @@ func getContent() string {
 
 func init() {
 	elnCmd.AddCommand(addDocumentCmd)
-	addDocumentCmd.Flags().StringVar(&addDocArgV.NameArg, "name",  "", "A name for the document")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.NameArg, "name", "", "A name for the document")
 	addDocumentCmd.Flags().StringVar(&addDocArgV.ParentfolderArg, "folder", "", "An id for the folder that will contain the new document")
 	addDocumentCmd.Flags().StringVar(&addDocArgV.Tags, "tags", "", "One or more tags, comma separated")
 	addDocumentCmd.Flags().StringVar(&addDocArgV.ContentFile, "file", "", "A file of text or HTML content to put in the document")

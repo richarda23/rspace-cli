@@ -16,17 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 	"strconv"
-
 )
+
 var mediaTypeArg = ""
+
 // listDocumentsCmd represents the listDocuments command
 var listFilesCmd = &cobra.Command{
 	Use:   "listFiles",
 	Short: "Lists attachment files.",
-	Long:`List files, with optional 'mediaType' argument to restrict the type of files retrieved 
+	Long: `List files, with optional 'mediaType' argument to restrict the type of files retrieved 
 
 		  rspace eln listFiles --mediaType document
 		  rspace eln listFiles --mediaType image
@@ -34,13 +35,13 @@ var listFilesCmd = &cobra.Command{
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		context := initialiseContext()  
+		context := initialiseContext()
 		cfg := configurePagination()
 		doListFiles(context, cfg)
 	},
 }
 
-func doListFiles (ctx *Context, cfg rspace.RecordListingConfig) {
+func doListFiles(ctx *Context, cfg rspace.RecordListingConfig) {
 	var filesList *rspace.FileList
 	var err error
 	filesList, err = ctx.WebClient.Files(cfg, mediaTypeArg)
@@ -58,42 +59,43 @@ type FileListFormatter struct {
 	FileArrayList
 }
 
-func (fs *FileListFormatter) ToJson () string{
+func (fs *FileListFormatter) ToJson() string {
 	return prettyMarshal(fs.FileArrayList.fList)
 }
 
-func (ds *FileListFormatter) ToQuiet () []identifiable{
+func (ds *FileListFormatter) ToQuiet() []identifiable {
 	return toIdentifiableFile(ds.FileArrayList.fList)
 }
 
-func (ds *FileListFormatter) ToTable () *TableResult {
+func (ds *FileListFormatter) ToTable() *TableResult {
 	results := ds.FileArrayList.fList
 
 	baseInfos := fileListToBaseInfoList(results)
 	nameColWidth := getMaxNameLength(baseInfos)
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"GlobalId",10},  columnDef{"Name", nameColWidth}, 
-	 columnDef{"Created",DISPLAY_TIMESTAMP_WIDTH},columnDef{"Size",12},columnDef{"ContentType", 25}}
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"GlobalId", 10}, columnDef{"Name", nameColWidth},
+		columnDef{"Created", DISPLAY_TIMESTAMP_WIDTH}, columnDef{"Size", 12}, columnDef{"ContentType", 25}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
-		data := []string {strconv.Itoa(res.Id),res.GlobalId, res.Name,
-			   res.Created[0:DISPLAY_TIMESTAMP_WIDTH],strconv.Itoa(res.Size),res.ContentType}
+		data := []string{strconv.Itoa(res.Id), res.GlobalId, res.Name,
+			res.Created[0:DISPLAY_TIMESTAMP_WIDTH], strconv.Itoa(res.Size), res.ContentType}
 		rows = append(rows, data)
 	}
 	return &TableResult{headers, rows}
-	
- }
- func toIdentifiableFile (results []*rspace.FileInfo) []identifiable {
+
+}
+func toIdentifiableFile(results []*rspace.FileInfo) []identifiable {
 	rows := make([]identifiable, 0)
-	
+
 	for _, res := range results {
 		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
 	}
 	return rows
 }
+
 // convert results  so can re-used file-display methods
-func processResults (files *rspace.FileList) []*rspace.FileInfo {
-	rc := make ([]*rspace.FileInfo, len(files.Files))
+func processResults(files *rspace.FileList) []*rspace.FileInfo {
+	rc := make([]*rspace.FileInfo, len(files.Files))
 	for i, v := range files.Files {
 		f := v
 		rc[i] = &f

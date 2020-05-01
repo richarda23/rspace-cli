@@ -16,29 +16,29 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 	"strconv"
 	"time"
-
 )
+
 // listDocumentsCmd represents the listDocuments command
 var listUsersCmd = &cobra.Command{
 	Use:   "listUsers",
 	Short: "Lists users - requires sysadmin role!",
-	Long:`List users, sorted or paginated, e.g.
+	Long: `List users, sorted or paginated, e.g.
 
 		  rspace eln listUsers
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		context := initialiseContext()  
+		context := initialiseContext()
 		//cfg := configurePagination()
 		doListusers(context)
 	},
 }
 
-func doListusers (ctx *Context) {
+func doListusers(ctx *Context) {
 	var usersList *rspace.UserList
 	var err error
 	usersList, err = ctx.WebClient.Users(time.Time{}, time.Time{})
@@ -53,11 +53,11 @@ type UserListFormatter struct {
 	*rspace.UserList
 }
 
-func (fs *UserListFormatter) ToJson () string{
+func (fs *UserListFormatter) ToJson() string {
 	return prettyMarshal(fs.UserList)
 }
 
-func (ds *UserListFormatter) ToQuiet () []identifiable{
+func (ds *UserListFormatter) ToQuiet() []identifiable {
 	rows := make([]identifiable, 0)
 	for _, res := range ds.UserList.Users {
 		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
@@ -65,24 +65,24 @@ func (ds *UserListFormatter) ToQuiet () []identifiable{
 	return rows
 }
 
-func (ds *UserListFormatter) ToTable () *TableResult {
+func (ds *UserListFormatter) ToTable() *TableResult {
 	results := ds.UserList.Users
 
-	headers := []columnDef {columnDef{"Id",8}, columnDef{"Username",10}, columnDef{"FirstName", 25}, 
-	 columnDef{"LastName", 25}}
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Username", 10}, columnDef{"FirstName", 25},
+		columnDef{"LastName", 25}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
-		data := []string {strconv.Itoa(res.Id),res.Username, res.FirstName,
-			   res.LastName}
+		data := []string{strconv.Itoa(res.Id), res.Username, res.FirstName,
+			res.LastName}
 		rows = append(rows, data)
 	}
-	return &TableResult {headers, rows}
-	
- }
- func toIdentifiableUser (results []*rspace.UserInfo) []identifiable {
+	return &TableResult{headers, rows}
+
+}
+func toIdentifiableUser(results []*rspace.UserInfo) []identifiable {
 	rows := make([]identifiable, 0)
-	
+
 	for _, res := range results {
 		rows = append(rows, identifiable{strconv.Itoa(res.Id)})
 	}

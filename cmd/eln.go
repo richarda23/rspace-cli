@@ -18,18 +18,20 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 )
+
 var outputFormatArg string
 var outFileArg string
 var sortOrderArg string
 var orderByArg string
 var pageSizeArg int
+
 // elnCmd represents the eln command
 var elnCmd = &cobra.Command{
 	Use:   "eln",
 	Short: "Top-level command to work with RSpace ELN",
 	Long: ` Run rspace eln --help to see all the possible commands.
 	`,
-	Args:   cobra.MinimumNArgs(1) ,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		messageStdErr("Requires a subcommand")
 	},
@@ -37,6 +39,6 @@ var elnCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(elnCmd)
-	 elnCmd.PersistentFlags().StringVarP(&outputFormatArg, "outputFormat", "f", "table", "Output format: one of 'json','table', 'csv' or 'quiet' ")
-	 elnCmd.PersistentFlags().StringVarP(&outFileArg, "outFile", "o", "", "Output file for program output")
+	elnCmd.PersistentFlags().StringVarP(&outputFormatArg, "outputFormat", "f", "table", "Output format: one of 'json','table', 'csv' or 'quiet' ")
+	elnCmd.PersistentFlags().StringVarP(&outFileArg, "outFile", "o", "", "Output file for program output")
 }

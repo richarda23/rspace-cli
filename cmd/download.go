@@ -16,18 +16,17 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/richarda23/rspace-client-go/rspace"
-	"os"
 	"fmt"
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
+	"os"
 )
 
 type downloadArgs struct {
 	OutfolderArg string
 }
 
-var dArgs= downloadArgs{}
-
+var dArgs = downloadArgs{}
 
 // createNotebookCmd represents the createNotebook command
 var downloadCmd = &cobra.Command{
@@ -37,23 +36,24 @@ var downloadCmd = &cobra.Command{
 	will download to current folder.
 	`,
 	Args: cobra.MinimumNArgs(1),
-	
+
 	Run: func(cmd *cobra.Command, args []string) {
-	//	post := rspace.FolderPost{IsNotebook: false}
+		//	post := rspace.FolderPost{IsNotebook: false}
 		ctx := initialiseContext()
-		ids:=validateDownloadArgs(args)
+		ids := validateDownloadArgs(args)
 		info := doDownload(ctx, ids)
 		ctx.writeResult(info)
 	},
 }
+
 // TODO hande multiple FileIds
-func doDownload (ctx *Context, ids []int) *FileListFormatter {
-	var results  = make([]*rspace.FileInfo, 0)
-	for _,id := range ids {
-		info,err :=ctx.WebClient.Download(id, dArgs.OutfolderArg)
+func doDownload(ctx *Context, ids []int) *FileListFormatter {
+	var results = make([]*rspace.FileInfo, 0)
+	for _, id := range ids {
+		info, err := ctx.WebClient.Download(id, dArgs.OutfolderArg)
 		if err != nil {
 			messageStdErr(err.Error())
-		} else {			
+		} else {
 			results = append(results, info)
 		}
 	}
@@ -61,17 +61,17 @@ func doDownload (ctx *Context, ids []int) *FileListFormatter {
 	return &FileListFormatter{fal}
 }
 
-func validateDownloadArgs (args [] string) []int{
-	ids:=make([]int, 0)
-	for _,idStr:=range args {
-		id,err:=idFromGlobalId(idStr)
+func validateDownloadArgs(args []string) []int {
+	ids := make([]int, 0)
+	for _, idStr := range args {
+		id, err := idFromGlobalId(idStr)
 		if err != nil {
 			messageStdErr(idStr + " is not valid id, skipping")
 		}
-		ids=append(ids, id)
+		ids = append(ids, id)
 	}
 	if len(dArgs.OutfolderArg) > 0 {
-		stats,err := os.Stat(dArgs.OutfolderArg)
+		stats, err := os.Stat(dArgs.OutfolderArg)
 		if err != nil {
 			exitWithErr(err)
 		}
@@ -79,14 +79,13 @@ func validateDownloadArgs (args [] string) []int{
 			exitWithStdErrMsg("Not a directory")
 		}
 	} else {
-		dArgs.OutfolderArg="./"
+		dArgs.OutfolderArg = "./"
 	}
 	fmt.Println(ids)
 	return ids
 }
-	
+
 func init() {
 	elnCmd.AddCommand(downloadCmd)
-	downloadCmd.Flags().StringVar(&dArgs.OutfolderArg, "dir",  "", "Optional directory to download into")
+	downloadCmd.Flags().StringVar(&dArgs.OutfolderArg, "dir", "", "Optional directory to download into")
 }
- 

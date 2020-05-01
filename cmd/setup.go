@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"io"
 	"net/url"
 	"os"
-	"github.com/richarda23/rspace-client-go/rspace"
 	"strings"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -19,10 +19,10 @@ const (
 var (
 	validOutputFormats = []string{"json", "csv", "quiet", "table"}
 	// for listTree
-	validTreeFilters   = []string{"document", "notebook", "folder"}
-	validSortOrders    = []string{"asc", "desc"}
-	validRecordOrders  = []string{"name", "created", "lastModified"}
-	outputFormat       outputFmt
+	validTreeFilters  = []string{"document", "notebook", "folder"}
+	validSortOrders   = []string{"asc", "desc"}
+	validRecordOrders = []string{"name", "created", "lastModified"}
+	outputFormat      outputFmt
 )
 
 type outputFmt string
@@ -39,6 +39,7 @@ func (ft outputFmt) isTab() bool {
 func (ft outputFmt) isQuiet() bool {
 	return ft == "quiet"
 }
+
 // Context maintains references to the webClient and result Writers
 type Context struct {
 	WebClient *rspace.RsWebClient
@@ -52,12 +53,13 @@ func (ctx *Context) writeResult(formatter ResultListFormatter) {
 		ctx.write(formatter.ToJson())
 	} else if ctx.Format.isQuiet() {
 		printIds(ctx, formatter.ToQuiet())
-	} else if (ctx.Format.isCsv()) {
+	} else if ctx.Format.isCsv() {
 		printCsv(ctx, formatter.ToTable())
 	} else {
 		printTable(ctx, formatter.ToTable())
 	}
 }
+
 // writes a string to the output stream (either stdout or a defined file)
 func (ctx *Context) write(toWrite string) {
 	fmt.Fprintln(ctx.Writer, toWrite)
@@ -111,12 +113,14 @@ func validateArrayContains(validTerms []string, toTest []string) bool {
 	}
 	return true
 }
+
 // asserts that an outputFmt argument is valid
 func validateOutputFormat(toTest outputFmt) bool {
 	return toTest.isJson() || toTest.isCsv() || toTest.isQuiet() || toTest.isTab()
 }
+
 // returns an io.Writer for a log file. If logfile is empty, return default writer.
-func initLogWriter (logfile string, defaultWriter io.Writer) io.Writer {
+func initLogWriter(logfile string, defaultWriter io.Writer) io.Writer {
 	if len(logfile) == 0 {
 		return defaultWriter
 	} else {
@@ -144,13 +148,13 @@ func initOutputWriter(outfile string) io.Writer {
 // reads apikey and url from viper configuration,
 // then sets these into an RsWebClient instance
 func initWebClient() *rspace.RsWebClient {
-	urlCfg,ok:=viper.Get(BASE_URL_ENV_NAME).(string)
+	urlCfg, ok := viper.Get(BASE_URL_ENV_NAME).(string)
 	if !ok || len(urlCfg) == 0 {
 		exitWithStdErrMsg("No URL for RSpace  detected")
 	}
 	url, _ := url.Parse(urlCfg)
 	messageStdErr("RSpace URL: " + urlCfg)
-	apikey,ok := viper.Get(APIKEY_ENV_NAME).(string)
+	apikey, ok := viper.Get(APIKEY_ENV_NAME).(string)
 	if !ok || len(apikey) == 0 {
 		exitWithStdErrMsg("No API key detected")
 	}

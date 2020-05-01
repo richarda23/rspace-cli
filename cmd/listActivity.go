@@ -16,20 +16,20 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"fmt"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
+	"strconv"
 	"strings"
 	"time"
-	"fmt"
-	"strconv"
 )
 
 type acArgsS struct {
-	actionsArg string
-	usersArg string
-	afterDateArg string
+	actionsArg    string
+	usersArg      string
+	afterDateArg  string
 	beforeDateArg string
-	globalId string
+	globalId      string
 }
 
 func (acargs *acArgsS) actions() []string {
@@ -40,47 +40,47 @@ func (acargs *acArgsS) users() []string {
 	return _splitAndTrim(acargs.usersArg)
 }
 
-func (acargs *acArgsS) after()  (time.Time){
+func (acargs *acArgsS) after() time.Time {
 	return parseDateArg(acargs.afterDateArg)
 }
 
-func (acargs *acArgsS) before()  (time.Time){
+func (acargs *acArgsS) before() time.Time {
 	return parseDateArg(acargs.beforeDateArg)
 }
 
-func (acargs *acArgsS) oid()  rspace.GlobalId{
+func (acargs *acArgsS) oid() rspace.GlobalId {
 	return rspace.GlobalId(acargs.globalId)
-} 
+}
 
-func parseDateArg (dateArg string) (time.Time) {
+func parseDateArg(dateArg string) time.Time {
 	if len(dateArg) == 0 {
 		return time.Time{}
 	}
-	t,err := 	time.Parse("2006-01-02", dateArg)
+	t, err := time.Parse("2006-01-02", dateArg)
 	if err != nil {
 		exitWithErr(err)
 	}
 	return t
 }
 
-func _splitAndTrim (commaSeparatedArg string) []string {
+func _splitAndTrim(commaSeparatedArg string) []string {
 	return strings.Split(commaSeparatedArg, ",")
 }
-var acArgs = acArgsS{}
 
+var acArgs = acArgsS{}
 
 // listDocumentsCmd represents the listDocuments command
 var listActivityCmd = &cobra.Command{
 	Use:   "listActivity",
 	Short: "Lists events and actions",
-	Long:`Lists activity 
+	Long: `Lists activity 
 
 		  rspace eln listFiles 
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		context := initialiseContext()  
-		cfg,_ := configureActivityList()
+		context := initialiseContext()
+		cfg, _ := configureActivityList()
 		pgCrit := configurePagination()
 		doListActivity(context, cfg, pgCrit)
 	},
@@ -89,48 +89,49 @@ var listActivityCmd = &cobra.Command{
 type ActivityListFormatter struct {
 	*rspace.ActivityList
 }
-func (ds *ActivityListFormatter) ToJson () string{
+
+func (ds *ActivityListFormatter) ToJson() string {
 	return prettyMarshal(ds.ActivityList)
 }
 
-func (ds *ActivityListFormatter) ToQuiet () []identifiable{
+func (ds *ActivityListFormatter) ToQuiet() []identifiable {
 	return toIdentifiableEvents(ds.ActivityList)
 }
 
-func (ds *ActivityListFormatter) ToTable () *TableResult{
-	
+func (ds *ActivityListFormatter) ToTable() *TableResult {
+
 	rows := make([][]string, 0)
-	var basicInfos  []rspace.BasicInfo = make ([]rspace.BasicInfo, 0)
+	var basicInfos []rspace.BasicInfo = make([]rspace.BasicInfo, 0)
 	for _, res := range ds.ActivityList.Activities {
-		info:=basicInfoFromPayload(res.Payload)
+		info := basicInfoFromPayload(res.Payload)
 		basicInfos = append(basicInfos, info)
-		data := []string {res.Action, res.Timestamp[:DISPLAY_TIMESTAMP_WIDTH],
-			info.GetGlobalId(),  info.GetName(), res.Username}
-			rows = append(rows, data) 
-		}
+		data := []string{res.Action, res.Timestamp[:DISPLAY_TIMESTAMP_WIDTH],
+			info.GetGlobalId(), info.GetName(), res.Username}
+		rows = append(rows, data)
+	}
 	maxLength := getMaxNameLength(basicInfos)
-	var headers = []columnDef{columnDef{"Action",10},columnDef{"Timestamp", DISPLAY_TIMESTAMP_WIDTH}, 
-		columnDef{"Id",10}, columnDef {"Name",maxLength}, columnDef{"User",10}}
+	var headers = []columnDef{columnDef{"Action", 10}, columnDef{"Timestamp", DISPLAY_TIMESTAMP_WIDTH},
+		columnDef{"Id", 10}, columnDef{"Name", maxLength}, columnDef{"User", 10}}
 	return &TableResult{headers, rows}
 }
 
-func configureActivityList () (*rspace.ActivityQuery, error) {
+func configureActivityList() (*rspace.ActivityQuery, error) {
 	builder := rspace.ActivityQueryBuilder{}
-	for _,v := range acArgs.actions() {
+	for _, v := range acArgs.actions() {
 		builder.Action(strings.TrimSpace(v))
 	}
 	builder.Domain("RECORD")
-	for _,v := range acArgs.users() {
+	for _, v := range acArgs.users() {
 		builder.User(strings.TrimSpace(v))
 	}
-	
+
 	builder.DateFrom(acArgs.after())
 	builder.DateTo(acArgs.before())
 	builder.Oid(acArgs.oid())
 	return builder.Build()
 }
 
-func doListActivity (ctx *Context, cfg *rspace.ActivityQuery, pgcrit rspace.RecordListingConfig) {
+func doListActivity(ctx *Context, cfg *rspace.ActivityQuery, pgcrit rspace.RecordListingConfig) {
 	var docList *rspace.ActivityList
 	var err error
 	docList, err = ctx.WebClient.Activities(cfg, pgcrit)
@@ -140,31 +141,32 @@ func doListActivity (ctx *Context, cfg *rspace.ActivityQuery, pgcrit rspace.Reco
 	ctx.writeResult(&ActivityListFormatter{docList})
 }
 
-func toIdentifiableEvents (result *rspace.ActivityList) []identifiable {
+func toIdentifiableEvents(result *rspace.ActivityList) []identifiable {
 	rc := make([]identifiable, 0)
-	for _,v := range result.Activities {
+	for _, v := range result.Activities {
 		payload := v.Payload
-		// payload can be arbitrary data, usually but not always has an id value		
-		if id:=basicInfoFromPayload(payload).GetId(); id > 0 {
+		// payload can be arbitrary data, usually but not always has an id value
+		if id := basicInfoFromPayload(payload).GetId(); id > 0 {
 			rc = append(rc, identifiable{strconv.Itoa(id)})
 		}
 	}
 	return rc
 }
+
 //returns 0 if not exists
-func basicInfoFromPayload (payload interface{}) rspace.BasicInfo {
+func basicInfoFromPayload(payload interface{}) rspace.BasicInfo {
 	m, ok := payload.(map[string]interface{})
-		if !ok {
-    		exitWithStdErrMsg(fmt.Sprintf("want type map[string]interface{};  got %T", payload))
-		}
-		rc := rspace.IdentifiableNamable{}
-		if id,ok:=m["id"]; ok {
-			rc.GlobalId = id.(string)
-			rc.Id,_=strconv.Atoi(id.(string)[2:])
-		}
-		if name,ok:=m["name"]; ok {
-			rc.Name = name.(string)
-		}
+	if !ok {
+		exitWithStdErrMsg(fmt.Sprintf("want type map[string]interface{};  got %T", payload))
+	}
+	rc := rspace.IdentifiableNamable{}
+	if id, ok := m["id"]; ok {
+		rc.GlobalId = id.(string)
+		rc.Id, _ = strconv.Atoi(id.(string)[2:])
+	}
+	if name, ok := m["name"]; ok {
+		rc.Name = name.(string)
+	}
 	return rc
 }
 
@@ -172,9 +174,9 @@ func init() {
 	elnCmd.AddCommand(listActivityCmd)
 
 	initPaginationFromArgs(listActivityCmd)
-	
+
 	listActivityCmd.PersistentFlags().StringVar(&acArgs.actionsArg, "actions", "", `Comma separated list of Actions 
-	   (e.g. READ, WRITE.CREATE etc`) 
+	   (e.g. READ, WRITE.CREATE etc`)
 	listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "usernames", "", `Comma separated list of usernames`)
 	listActivityCmd.PersistentFlags().StringVar(&acArgs.afterDateArg, "afterDate", "", `Find events after this date, in format YYYY:MM:DD
 		e.g. 2020-01-31`)

@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
 	"strconv"
 	"strings"

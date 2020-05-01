@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"strings"
 	"github.com/spf13/viper"
 )

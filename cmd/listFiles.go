@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"strconv"
 
 )
@@ -107,8 +107,4 @@ func init() {
 	initPaginationFromArgs(listFilesCmd)
 	// and all subcommands, e.g.:
 	listFilesCmd.PersistentFlags().StringVar(&mediaTypeArg, "mediaType", "", "Optional media type, 1 of 'image', 'document' or 'av'")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listDocumentsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

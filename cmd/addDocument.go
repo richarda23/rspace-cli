@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"io/ioutil"
 	"strings"
 )
@@ -74,18 +74,9 @@ func getContent() string {
 
 func init() {
 	elnCmd.AddCommand(addDocumentCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addDocumentCmd.PersistentFlags().String("name", "n","",  "A name for the notebook")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	 addDocumentCmd.Flags().StringVar(&addDocArgV.NameArg, "name",  "", "A name for the document")
-	 addDocumentCmd.Flags().StringVar(&addDocArgV.ParentfolderArg, "folder", "", "An id for the folder that will contain the new document")
-	 addDocumentCmd.Flags().StringVar(&addDocArgV.Tags, "tags", "", "One or more tags, comma separated")
-	 addDocumentCmd.Flags().StringVar(&addDocArgV.ContentFile, "file", "", "A file of text or HTML content to put in the document")
-	 addDocumentCmd.Flags().StringVar(&addDocArgV.Content, "content", "", "Text or HTML content to put in the document")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.NameArg, "name",  "", "A name for the document")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.ParentfolderArg, "folder", "", "An id for the folder that will contain the new document")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.Tags, "tags", "", "One or more tags, comma separated")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.ContentFile, "file", "", "A file of text or HTML content to put in the document")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.Content, "content", "", "Text or HTML content to put in the document")
 }

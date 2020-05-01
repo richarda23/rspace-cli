@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"math"
 	"regexp"
 	"strconv"

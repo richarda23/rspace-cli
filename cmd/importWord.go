@@ -18,7 +18,7 @@ package cmd
 import (
 	"fmt"
 	"strconv"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"os"
 	"github.com/spf13/cobra"
     "os/signal"
@@ -78,7 +78,6 @@ var importArgsArg importWordCmdArgs
 	Any folder structure in the input is flattened in RSpace. 
 	Documents are generated in 'folder' or HomeFolder if 'targetFolder' is not set.
 	
-
 	Files or folder names starting with '.' are ignored. But you can use '.' as an argument
 	to scan the current folder, e.g.
 
@@ -166,8 +165,6 @@ func reportImport(ctx *Context, uploaded []*rspace.DocumentInfo) {
 	ctx.writeResult(&formatter)
  }
 
- 
-
 func importDocListToBaseInfoList (results []*rspace.FileInfo) []rspace.BasicInfo {
 	var baseResults = make([]rspace.BasicInfo, len(results))
 	for i,v := range results {
@@ -198,8 +195,5 @@ func init() {
 	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.DryrunFlag, "dry-run", false,"Performs a dry-run, reportImports on what would be uploaded")
 	importWordCmd.PersistentFlags().StringVar(&importArgsArg.LogfileArg, "logfile", "","A log file to record upload progress, if not set will log to standard error")
 	importWordCmd.PersistentFlags().IntVar(&importArgsArg.TargetFolder, 
-		"folder", 0,"ID of Target folder for imported Word files")
-	
-	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.GenerateSummaryDoc,
-		 "add-summary", false, "Generate a summary document containing links to uploaded files")
+		"folder", 0,"ID of Target folder for imported Word files")	
 }

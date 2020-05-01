@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"strconv"
 
 )
@@ -90,6 +90,4 @@ func (ds *FormListFormatter) ToTable () *TableResult {
 func init() {
 	elnCmd.AddCommand(listFormsCmd)
 	initPaginationFromArgs(listFormsCmd)
-	// and all subcommands, e.g.:
-	//listFormsCmd.PersistentFlags().StringVar(&mediaTypeArg, "mediaType", "", "Optional media type, 1 of '
 }

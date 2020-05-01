@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"os"
 	"fmt"
 )
@@ -34,7 +34,7 @@ var downloadCmd = &cobra.Command{
 	Use:   "download",
 	Short: "Downloads a file with the given id",
 	Long: `Downloads a file with given id. outfile is optional; if not set
-	will downlad to current folder.
+	will download to current folder.
 	`,
 	Args: cobra.MinimumNArgs(1),
 	

@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"strconv"
 	"time"
 
@@ -25,10 +25,10 @@ import (
 // listDocumentsCmd represents the listDocuments command
 var listUsersCmd = &cobra.Command{
 	Use:   "listUsers",
-	Short: "Lists users",
+	Short: "Lists users - requires sysadmin role!",
 	Long:`List users, sorted or paginated, e.g.
 
-		  rspace eln listusers
+		  rspace eln listUsers
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -90,7 +90,6 @@ func (ds *UserListFormatter) ToTable () *TableResult {
 }
 func init() {
 	elnCmd.AddCommand(listUsersCmd)
+	//TODO paginate/sort/ query by lastLogin/creation
 	//initPaginationFromArgs(listUsersCmd)
-	// and all subcommands, e.g.:
-	//listUsersCmd.PersistentFlags().StringVar(&mediaTypeArg, "mediaType", "", "Optional media type, 1 of '
 }

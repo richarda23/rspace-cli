@@ -17,14 +17,14 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"strings"
 	"time"
 	"fmt"
 	"strconv"
 )
 
- type acArgsS struct {
+type acArgsS struct {
 	actionsArg string
 	usersArg string
 	afterDateArg string
@@ -50,8 +50,7 @@ func (acargs *acArgsS) before()  (time.Time){
 
 func (acargs *acArgsS) oid()  rspace.GlobalId{
 	return rspace.GlobalId(acargs.globalId)
-}
- 
+} 
 
 func parseDateArg (dateArg string) (time.Time) {
 	if len(dateArg) == 0 {
@@ -141,7 +140,6 @@ func doListActivity (ctx *Context, cfg *rspace.ActivityQuery, pgcrit rspace.Reco
 	ctx.writeResult(&ActivityListFormatter{docList})
 }
 
-
 func toIdentifiableEvents (result *rspace.ActivityList) []identifiable {
 	rc := make([]identifiable, 0)
 	for _,v := range result.Activities {
@@ -177,10 +175,10 @@ func init() {
 	
 	listActivityCmd.PersistentFlags().StringVar(&acArgs.actionsArg, "actions", "", `Comma separated list of Actions 
 	   (e.g. READ, WRITE.CREATE etc`) 
-	   listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "usernames", "", `Comma separated list of usernames`)
-	   listActivityCmd.PersistentFlags().StringVar(&acArgs.afterDateArg, "afterDate", "", `Find events after this date, in format YYYY:MM:DD
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "usernames", "", `Comma separated list of usernames`)
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.afterDateArg, "afterDate", "", `Find events after this date, in format YYYY:MM:DD
 		e.g. 2020-01-31`)
-		listActivityCmd.PersistentFlags().StringVar(&acArgs.beforeDateArg, "beforeDate", "", `Find events before this date, in format YYYY:MM:DD
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.beforeDateArg, "beforeDate", "", `Find events before this date, in format YYYY:MM:DD
 		e.g. 2020-01-31`)
-		listActivityCmd.PersistentFlags().StringVar(&acArgs.globalId, "id", "", `Find events for a single document`)
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.globalId, "id", "", `Find events for a single document`)
 }

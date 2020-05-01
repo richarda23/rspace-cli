@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"fmt"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"os"
 	"github.com/spf13/cobra"
 	"text/template"

@@ -19,7 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"io/ioutil"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	//"fmt"
 )
 type addUserArgs struct {
@@ -77,21 +77,12 @@ func getRoleForArg(arg string) rspace.UserRoleType {
 
 func init() {
 	elnCmd.AddCommand(addUserCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addUserCmd.PersistentFlags().String("name", "n","",  "A name for the notebook")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	addUserCmd.Flags().StringVar(&userArgs.UsernameArg, "username", "", "username")
 	addUserCmd.Flags().StringVar(&userArgs.FNameArg, "first", "Unknown", "First name")
-	 addUserCmd.Flags().StringVar(&userArgs.LNameArg, "last", "Unknown", "Last name")
-	 addUserCmd.Flags().StringVar(&userArgs.EmailArg, "email", "", "Valid email address")
-	 addUserCmd.Flags().StringVar(&userArgs.RoleArg, "role", "user", "Role, either 'pi' or 'user'")
-	 addUserCmd.Flags().StringVar(&userArgs.AffiliationArg, "affiliation", "unknown", "Affiliation (Community only)")
+	addUserCmd.Flags().StringVar(&userArgs.LNameArg, "last", "Unknown", "Last name")
+	addUserCmd.Flags().StringVar(&userArgs.EmailArg, "email", "", "Valid email address")
+	addUserCmd.Flags().StringVar(&userArgs.RoleArg, "role", "user", "Role, either 'pi' or 'user'")
+	addUserCmd.Flags().StringVar(&userArgs.AffiliationArg, "affiliation", "unknown", "Affiliation (Community only)")
 
-	 addUserCmd.Flags().StringVar(&userArgs.PasswordFileArg, "pwdfile", "", "a file containing the password")
-	}
+	addUserCmd.Flags().StringVar(&userArgs.PasswordFileArg, "pwdfile", "", "a file containing the password")
+}

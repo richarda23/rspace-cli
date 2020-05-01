@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"rspace"
+	"github.com/richarda23/rspace-client-go/rspace"
 	"strconv"
 )
 var Quiet bool
@@ -160,10 +160,7 @@ func init() {
 	elnCmd.AddCommand(listDocumentsCmd)
 
 	initPaginationFromArgs(listDocumentsCmd)
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
+	
 	listDocumentsCmd.PersistentFlags().StringVar(&searchQuery, "query", "", "Search query term")
 	listDocumentsCmd.PersistentFlags().BoolVar(&orSrchArg, "or", false, "Combines search terms together with boolean 'OR'")
 	listDocumentsCmd.PersistentFlags().StringVar(&nameSearchArg, "name", "", "Search by name")
@@ -178,8 +175,5 @@ func init() {
 			 "Documents modified before date, in format '2019-03-26' ")
 	listDocumentsCmd.PersistentFlags().StringVar(&formSearchArg, "form", "",
 			 "Documents created by a form; either name or globalID (e.g. FM5)")
-			 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listDocumentsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+			
 }

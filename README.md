@@ -28,6 +28,8 @@ your API key
     RSPACE_API_KEY=get_this_from_your_profile_page
     RSPACE_URL=https://myrspace.com/api/v1
 
+[ ![Download](https://api.bintray.com/packages/ra22597/rspace-cli/rspace-cli/images/download.svg) ](https://bintray.com/ra22597/rspace-cli/rspace-cli/_latestVersion)
+
 If you prefer you can add this information in any file and supply its filepath with the --config flag to each command, e.g.
 
     rspace eln listTree --config /path/to/myConfig.txt

@@ -56,15 +56,16 @@ function publish {
     PKG="rspace-cli"
     BINTRAY_URL="https://api.bintray.com/content"
     FILE_UPLOAD_BASE=$BINTRAY_URL/$BINTRAY_USERNAME/rspace-cli/$PKG/$VERSION
+    HEADERS="X-GPG-PASSPHRASE: $X_GPG_PASSPHRASE"
     ## WIN
     echo "Uploading  $WIN_EXE"
-    curl -T $DIST_DIR/win/$WIN_EXE -u$BINTRAY_USERNAME:$APIKEY "$FILE_UPLOAD_BASE/amd-64-windows/rspace.exe"
+    curl -H "$HEADERS" -T $DIST_DIR/win/$WIN_EXE -u$BINTRAY_USERNAME:$APIKEY "$FILE_UPLOAD_BASE/amd-64-windows/rspace-win-$VERSION.exe"
     ## MAC
     echo "Uploading $MAC_EXE"
-    curl -T $DIST_DIR/mac/$MAC_EXE -u$BINTRAY_USERNAME:$APIKEY "$FILE_UPLOAD_BASE/amd-64-macosx/rspace"
+    curl -H "$HEADERS" -T $DIST_DIR/mac/$MAC_EXE -u$BINTRAY_USERNAME:$APIKEY "$FILE_UPLOAD_BASE/amd-64-macosx/rspace-macosx-$VERSION"
     ## LINUX
     echo "Uploading $LINUX_EXE"
-    curl -T $DIST_DIR/linux/$LINUX_EXE -u$BINTRAY_USERNAME:$APIKEY "$FILE_UPLOAD_BASE/amd-64-linux/rspace"
+    curl -H "$HEADERS" -T $DIST_DIR/linux/$LINUX_EXE -u$BINTRAY_USERNAME:$APIKEY "$FILE_UPLOAD_BASE/amd-64-linux/rspace-linux-$VERSION"
 }
 #### main script####
 if [[ $CMD == "b" || $CMD == "bp" ]]; then

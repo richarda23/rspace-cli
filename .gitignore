@@ -1,3 +1,4 @@
 sysadmin-cfg.env
 pw.txt
 dist/
+.bintray-api.sh

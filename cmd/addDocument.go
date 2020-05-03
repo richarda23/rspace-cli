@@ -16,10 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"strings"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
 type addDocArgs struct {

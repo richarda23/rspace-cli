@@ -17,33 +17,40 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"fmt"
+	"github.com/richarda23/rspace-client-go/rspace"
 )
 
-// statusCmd represents the status command
-var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Checks status of RSpace",
-	Long:  "Gets version and current status of RSpace",
-	Run: func(cmd *cobra.Command, args []string) {
-		context := initialiseContext()
-		got, err := context.WebClient.Status()
-		if err != nil {
-			exitWithErr(err)
-		}
-		context.write(got.Message)
-	},
+func NewStatusCmd () *cobra.Command {
+	// statusCmd represents the status command
+	return &cobra.Command{
+		Use:   "status",
+		Short: "Checks status of RSpace",
+		Long:  "Gets version and current status of RSpace",
+		Example: "rspace status",
+		RunE: runFunction,
+	}
+}
+
+type StatusCli interface {
+	 Status() (*rspace.Status, error)
+}
+//fixed signature for cobra framework
+func runFunction (cmd *cobra.Command, args []string) error {
+	context := initialiseContext()
+	return doRun(cmd, args, context.WebClient)
+}
+
+func doRun (cmd *cobra.Command, args []string, cli StatusCli)  error {
+	got, err := cli.Status()
+	if err != nil {
+		fmt.Fprintf(cmd.ErrOrStderr(), err.Error())
+		return err
+	}
+	fmt.Fprintf(cmd.ErrOrStderr(), got.RSpaceVersion + ", " + got.Message +"\n")
+	return nil
 }
 
 func init() {
-	rootCmd.AddCommand(statusCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// statusCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// statusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(NewStatusCmd())
 }

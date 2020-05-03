@@ -16,38 +16,38 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"fmt"
 	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
-func NewStatusCmd () *cobra.Command {
+func NewStatusCmd() *cobra.Command {
 	// statusCmd represents the status command
 	return &cobra.Command{
-		Use:   "status",
-		Short: "Checks status of RSpace",
-		Long:  "Gets version and current status of RSpace",
+		Use:     "status",
+		Short:   "Checks status of RSpace",
+		Long:    "Gets version and current status of RSpace",
 		Example: "rspace status",
-		RunE: runFunction,
+		RunE:    runFunction,
 	}
 }
 
 type StatusCli interface {
-	 Status() (*rspace.Status, error)
-}
-//fixed signature for cobra framework
-func runFunction (cmd *cobra.Command, args []string) error {
-	context := initialiseContext()
-	return doRun(cmd, args, context.WebClient)
+	Status() (*rspace.Status, error)
 }
 
-func doRun (cmd *cobra.Command, args []string, cli StatusCli)  error {
+//fixed signature for cobra framework
+func runFunction(cmd *cobra.Command, args []string) error {
+	context := initialiseContext()
+	return doRun(context.WebClient, context)
+}
+
+func doRun(cli StatusCli, ctx *Context) error {
 	got, err := cli.Status()
 	if err != nil {
-		fmt.Fprintf(cmd.ErrOrStderr(), err.Error())
+		ctx.messageStdErr(err.Error())
 		return err
 	}
-	fmt.Fprintf(cmd.ErrOrStderr(), got.RSpaceVersion + ", " + got.Message +"\n")
+	ctx.write(got.RSpaceVersion + ", " + got.Message + "\n")
 	return nil
 }
 

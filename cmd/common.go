@@ -4,12 +4,14 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/richarda23/rspace-client-go/rspace"
+	"io"
 	"math"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/richarda23/rspace-client-go/rspace"
 	//"errors"
 )
 
@@ -26,6 +28,10 @@ func exitWithErr(err error) {
 }
 func messageStdErr(message string) {
 	fmt.Fprintln(os.Stderr, message)
+}
+
+func message(writer io.Writer, message string) {
+	fmt.Fprintln(writer, message)
 }
 
 // idFromGlobalId matches either globalId string or a numeric id, returning

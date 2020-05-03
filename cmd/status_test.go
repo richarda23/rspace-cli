@@ -1,36 +1,56 @@
 package cmd
 
 import (
-	"testing"
 	"bytes"
-	"io/ioutil"
 	"errors"
+	"io/ioutil"
 	"strings"
+	"testing"
+
 	//"github.com/spf13/cobra"
 	"github.com/richarda23/rspace-client-go/rspace"
-
 )
 
-type ErrorStatus struct {}
-func (e ErrorStatus) Status ()(*rspace.Status, error) {
+type ErrorStatus struct{}
+
+func (e ErrorStatus) Status() (*rspace.Status, error) {
 	return nil, errors.New("error from status")
 }
 
-func TestStatusHandlesErr (t *testing.T) {
-	cmd := NewStatusCmd()
-	b := bytes.NewBufferString("")
-	cmd.SetErr(b)
-	//ctx := initialiseContext()
-	err := doRun(cmd, []string{}, ErrorStatus{})
-	
+type OKStatus struct{}
+
+func (e OKStatus) Status() (*rspace.Status, error) {
+	return &rspace.Status{"message", "version"}, nil
+}
+
+func TestStatus(t *testing.T) {
+
+	// test-spy for context error-writer
+	errWriter := bytes.NewBufferString("")
+	ctx := &Context{}
+	ctx.ErrWriter = errWriter
+	err := doRun(ErrorStatus{}, ctx)
 	if err == nil {
-		t.Fatalf("error NOT handled")
+		t.Fatal("error NOT handled")
 	}
-	out, err := ioutil.ReadAll(b)
+	errString, err := ioutil.ReadAll(errWriter)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(out), "error") {
-		t.Fatalf("expected \"%s\" got \"%s\"", "a string containing 'error'", string(out))
-	}	
+	if !strings.Contains(string(errString), "error") {
+		t.Fatalf("expected '%s' got '%s'", "a string containing 'error'", string(errString))
+	}
+
+	// now assert OK status is written to Context OutWriter
+	outWriter := bytes.NewBufferString("")
+	ctx.Writer = outWriter
+	err = doRun(OKStatus{}, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outString, _ := ioutil.ReadAll(outWriter)
+	if !strings.Contains(string(outString), "message") {
+		t.Fatalf("expected '%s' got '%s'", "a string containing 'error'", string(outString))
+	}
+
 }

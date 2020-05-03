@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -44,7 +45,12 @@ func (ft outputFmt) isQuiet() bool {
 type Context struct {
 	WebClient *rspace.RsWebClient
 	Writer    io.Writer
+	ErrWriter io.Writer
 	Format    outputFmt
+}
+
+func (ctx *Context) messageStdErr(message string) {
+	fmt.Fprintln(ctx.ErrWriter, message)
 }
 
 //Writes the result of a command to one of the supported output formats

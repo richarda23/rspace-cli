@@ -84,9 +84,7 @@ var uploadCmd = &cobra.Command{
 	depending on the file type. 
 
 	Files or folder names starting with '.' are ignored. But you can use '.' as an argument
-	to upload the current folder, e.g.
-
-	rspace eln upload . --recursive
+	to upload the current folder
 
 	The --add-summary flag creates a document in your Home Folder with links to all 
 	the uploaded files, as a reference to the uploaded files.
@@ -94,6 +92,20 @@ var uploadCmd = &cobra.Command{
 	If you are uploading many files, and cancel the operation while it is still running by a Ctrl-C
 	or other interrupt signal, the files *not* uploaded will be listed in stderr or in a file
 	specified by the --logfile argument.
+	`,
+	Example: `
+
+		// upload a single file
+		rspace eln upload myimage.png
+
+		// do a dry run to see what would be uploaded
+		rspace eln upload file.doc imageFolder --recursive --dry-run
+
+		//use a logfile to record what was uploaded, in the event of cancellation or error
+		rspace eln upload folderWithManyFiles --recursive --logfile progress.txt
+
+		// upload a file and a folder, recursively, and generate a summary document
+		rspace eln upload file.doc imageFolder --recursive --add-summary
 	`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

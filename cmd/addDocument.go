@@ -54,14 +54,26 @@ var addDocumentCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()
-		content := getContent(addDocArgV)
-		newDoc := context.WebClient.NewBasicDocumentWithContent(addDocArgV.NameArg,
-			addDocArgV.Tags, content)
-		docList := rspace.DocumentList{}
-		docList.Documents = []rspace.DocumentInfo{*newDoc}
-		var dlf = DocListFormatter{&docList}
-		context.writeResult(&dlf)
+		doAddDocRun(addDocArgV, context, context.WebClient)
 	},
+}
+
+type DocClient interface {
+	NewBasicDocumentWithContent(name, tags, content string) (*rspace.DocumentInfo, error)
+}
+
+func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) {
+	content := getContent(addDocArgV)
+	newDoc, err := docClient.NewBasicDocumentWithContent(addDocArgV.NameArg,
+		addDocArgV.Tags, content)
+
+	if err != nil {
+		exitWithErr(err)
+	}
+	docList := rspace.DocumentList{}
+	docList.Documents = []rspace.DocumentInfo{*newDoc}
+	var dlf = DocListFormatter{&docList}
+	context.writeResult(&dlf)
 }
 
 func getContent(addDocArgV addDocArgs) string {

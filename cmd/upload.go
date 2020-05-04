@@ -18,12 +18,13 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"syscall"
 	"text/template"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
 type uploadCmdArgs struct {
@@ -135,8 +136,12 @@ func report(ctx *Context, uploaded []*rspace.FileInfo) {
 
 func addSummaryDoc(ctx *Context, uploaded []*rspace.FileInfo) {
 	contentStr := generateSummaryContent(uploaded)
-	summaryDocInfo := ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary", "", contentStr)
-	messageStdErr("Created summary with id " + summaryDocInfo.GlobalId)
+	summaryDocInfo, err := ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary", "", contentStr)
+	if err != nil {
+		messageStdErr(err.Error())
+	} else {
+		messageStdErr("Created summary with id " + summaryDocInfo.GlobalId)
+	}
 }
 
 // populates an HTML  table template with links to uploaded files

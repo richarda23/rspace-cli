@@ -16,9 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"strconv"
+
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 var Quiet bool
@@ -39,15 +40,16 @@ var modifiedAfterSrchArg string
 var listDocumentsCmd = &cobra.Command{
 	Use:   "listDocuments",
 	Short: "Lists the documents",
-	Long: ` Lists documents. Search is optional E.g.
-	
+	Long: ` List or search for documents. Search term  is optional.
+	`,
+	Example: `
 		// A global search over names, tags, file and text content
 		 rspace eln listDocuments --query myexperiment
 
-		// Get documents whose name starts with 'experiment' OR is created in 2020 or later
+		// Get documents whose name starts with 'experiment' OR are created in 2020 or later
 		rspace eln listDocuments --or --name experiment* --createdAfter 2020-01-01
 
-		//  list the 1st hundred documents created
+		//  list the first hundred documents created
 		rspace eln listDocuments --orderBy created --sortOrder asc --maxResults 100
 
 		// list documents created from a particular form:

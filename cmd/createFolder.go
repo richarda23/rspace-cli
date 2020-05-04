@@ -16,39 +16,43 @@ limitations under the License.
 package cmd
 
 import (
+	"strconv"
+
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
-var foldername string
-var parentFolder string
+var createFolderArgS = createFolderArg{}
 
-// createNotebookCmd represents the createNotebook command
 var createFolderCmd = &cobra.Command{
 	Use:   "createFolder",
 	Short: "Creates a new Folder",
 	Long: `Create a new Folder, with an optional name and parent folder ID
-	  create-folder --name foldername --folder FL1234
+	`,
+	Example: `
+		// make a new folder in folder with id FL1234
+		rspace eln createFolder --name MyFolder --folder FL1234
+	
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		post := rspace.FolderPost{IsNotebook: false}
 		ctx := initialiseContext()
-		doCreateFolder(ctx, foldername, parentFolder, post)
+		doCreateFolder(ctx, createFolderArgS, post)
 	},
 }
 
-func doCreateFolder(ctx *Context, foldername string, parentFolder string, post rspace.FolderPost) {
-	if len(foldername) > 0 {
-		post.Name = foldername
+func doCreateFolder(ctx *Context, args createFolderArg, post rspace.FolderPost) {
+	if len(args.Name) > 0 {
+		post.Name = args.Name
 	}
-	if len(parentFolder) > 0 {
-		id, err := strconv.Atoi(parentFolder)
+	if len(args.ParentFolder) > 0 {
+		id, err := idFromGlobalId(args.ParentFolder)
 		if err != nil {
-			exitWithStdErrMsg("Please supply a numeric folder id for the parent folder")
+			exitWithStdErrMsg("Please supply a folder id for the parent folder")
 		}
 		post.ParentFolderId = id
 	}
+
 	got, err := ctx.WebClient.FolderNew(&post)
 	if err != nil {
 		exitWithErr(err)
@@ -76,6 +80,6 @@ func folderToTable(ctx *Context, folder *rspace.Folder) {
 }
 func init() {
 	elnCmd.AddCommand(createFolderCmd)
-	createFolderCmd.Flags().StringVarP(&foldername, "name", "n", "", "A name for the folder")
-	createFolderCmd.Flags().StringVarP(&parentFolder, "folder", "p", "", "An id for the folder that will contain the new folder")
+	createFolderCmd.Flags().StringVarP(&createFolderArgS.Name, "name", "n", "", "A name for the folder")
+	createFolderCmd.Flags().StringVarP(&createFolderArgS.ParentFolder, "folder", "p", "", "An id for the folder that will contain the new folder")
 }

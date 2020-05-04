@@ -17,12 +17,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
 type importWordCmdArgs struct {
@@ -73,21 +74,26 @@ var importWordCmd = &cobra.Command{
 	Use:   "importWord",
 	Short: "Import MSOffice Word files (doc, docx or odt)",
 	Long: ` Import Word files as RSpace document. Add files and folders to the command line. 
-	Files and folders are scanned for Word documents and converter
+	Files and folders are scanned for Word documents and converted
 	
 	Use the --recursive flag to scan all folder tree contents.
 	
 	Any folder structure in the input is flattened in RSpace. 
-	Documents are generated in 'folder' or HomeFolder if 'targetFolder' is not set.
+	Documents are generated in 'folder' or HomeFolder if 'folder' is not set.
 	
 	Files or folder names starting with '.' are ignored. But you can use '.' as an argument
 	to scan the current folder, e.g.
 
-	rspace eln importWord . --recursive
-
 	If you are importing many files, and cancel the operation while it is still running by a Ctrl-C
 	or other interrupt signal, the files *not* imported will be listed in stderr or in a file
 	specified by the --logfile argument.
+	`,
+	Example: `
+			// import a single file
+			rspace eln importWord wordfile.docx
+
+			// scan a folder recursively and import all MSWord files into an RSpace folder
+			rspace eln importWord AFolder --folder 1234 --recursive
 	`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

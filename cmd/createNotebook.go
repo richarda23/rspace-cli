@@ -20,25 +20,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var notebookName string
-var parentfolder string
+type createFolderArg struct {
+	Name, ParentFolder string
+}
+
+var createNotebookArgS createFolderArg
 
 // createNotebookCmd represents the createNotebook command
 var createNotebookCmd = &cobra.Command{
 	Use:   "createNotebook",
 	Short: "Creates a new notebook",
 	Long: `Create a new notebook, with an optional name and parent folder
-	  create-notebook --name nbname --folder FL1234
+	`,
+	Example: `
+		// create a new notebook 'MyNotebook' in folder FL1234
+		rspace eln createNotebook --name MyNotebook --folder FL1234
+
+		//create an unnamed notebook in home folder
+		rspace eln createNotebook
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		post := rspace.FolderPost{IsNotebook: true}
 		context := initialiseContext()
-		doCreateFolder(context, notebookName, parentfolder, post)
+		doCreateNotebook(context, createFolderArgS)
 	},
+}
+
+func doCreateNotebook(ctx *Context, args createFolderArg) {
+	post := rspace.FolderPost{IsNotebook: true}
+	doCreateFolder(ctx, args, post)
 }
 
 func init() {
 	elnCmd.AddCommand(createNotebookCmd)
-	createNotebookCmd.Flags().StringVarP(&notebookName, "name", "n", "", "A name for the notebook")
-	createNotebookCmd.Flags().StringVarP(&parentfolder, "folder", "p", "", "An id for the folder that will contain the new notebook")
+	createNotebookCmd.Flags().StringVarP(&createNotebookArgS.Name, "name", "n", "", "A name for the notebook")
+	createNotebookCmd.Flags().StringVarP(&createNotebookArgS.ParentFolder, "folder", "p", "", "An id for the folder that will contain the new notebook")
 }

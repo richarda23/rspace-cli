@@ -1,14 +1,15 @@
 ## RSpace-CLI
 
-RSpace-CLI is a command-line application to interact with RSpace ELN.
+RSpace-CLI is a command-line application to interact with RSpace ELN in a more convenient
+and compact way than using the API directly.
 
 It is designed a supplement to the web interface for tasks such as:
 
-* bulk upload or download of files
+* bulk upload or download of files and folders
 * bulk import of MSWord documents into native RSpace documents
 * Querying audit-trail for activity
 * Getting reports in JSON, tabular or CSV format
-* Integrating with your data-management workflows
+* Integrating cleanly into your data-management workflows
 * Admin functions such as ad-hoc account creation
 
 It is written in the Go programming language.
@@ -35,8 +36,8 @@ your API key, like this:
     RSPACE_API_KEY=get_this_from_your_RSpace_profile_page
     RSPACE_URL=https://myrspace.com/api/v1
 
-If you prefer, instead of the default '.rspace' file,  you can add this informtion to any file and supply its filepath with the --config flag to each command, e.g.
+If you prefer, instead of the default '.rspace' file,  you can add this information to any file and supply its filepath with the --config flag to each command, e.g.
 
     rspace eln listTree --config /path/to/myConfig.txt
 
-Using --config option is useful if you have more than 1 account (e.g. an admin account and a personal account)
+Using --config option is useful if you have more than one account (e.g. an admin account and a personal account)

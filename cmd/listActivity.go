@@ -17,11 +17,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
 type acArgsS struct {
@@ -73,9 +74,18 @@ var acArgs = acArgsS{}
 var listActivityCmd = &cobra.Command{
 	Use:   "listActivity",
 	Short: "Lists events and actions",
-	Long: `Lists activity 
+	Long: `Lists events and actions. You can filter by action, user, date range or by
+		ids of documents.
+	`,
+	Example: `
+	// get creation and write events for first 4 months of 2020
+	rspace eln listActivity --actions create,write --afterDate 2020-01-01 --beforeDate 2020-05-01 
 
-		  rspace eln listFiles 
+	// get full activity for a particular document
+	rspace eln listACtivity --id SD12345
+
+	// get activity for a particular user (PIs and admins only)
+	rspace eln listACtivity --users bob123, jacqueline
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -175,12 +185,14 @@ func init() {
 
 	initPaginationFromArgs(listActivityCmd)
 
-	listActivityCmd.PersistentFlags().StringVar(&acArgs.actionsArg, "actions", "", `Comma separated list of Actions 
-	   (e.g. READ, WRITE.CREATE etc`)
-	listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "usernames", "", `Comma separated list of usernames`)
-	listActivityCmd.PersistentFlags().StringVar(&acArgs.afterDateArg, "afterDate", "", `Find events after this date, in format YYYY:MM:DD
-		e.g. 2020-01-31`)
-	listActivityCmd.PersistentFlags().StringVar(&acArgs.beforeDateArg, "beforeDate", "", `Find events before this date, in format YYYY:MM:DD
-		e.g. 2020-01-31`)
-	listActivityCmd.PersistentFlags().StringVar(&acArgs.globalId, "id", "", `Find events for a single document`)
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.actionsArg, "actions", "",
+		"Comma separated list of Actions (e.g. READ, WRITE.CREATE etc)")
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.usersArg, "usernames", "",
+		"Comma separated list of usernames")
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.afterDateArg, "afterDate", "",
+		"Find events after this date, in format YYYY:MM:DD e.g. 2020-01-31")
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.beforeDateArg, "beforeDate", "",
+		"Find events before this date, in format YYYY:MM:DD e.g. 2020-01-31")
+	listActivityCmd.PersistentFlags().StringVar(&acArgs.globalId, "id", "",
+		"Find events for a single document")
 }

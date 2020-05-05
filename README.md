@@ -36,8 +36,8 @@ your API key, like this:
     RSPACE_API_KEY=get_this_from_your_RSpace_profile_page
     RSPACE_URL=https://myrspace.com/api/v1
 
-If you prefer, instead of the default '.rspace' file,  you can add this informtion to any file and supply its filepath with the --config flag to each command, e.g.
+If you prefer, instead of the default '.rspace' file,  you can add this information to any file and supply its filepath with the --config flag to each command, e.g.
 
     rspace eln listTree --config /path/to/myConfig.txt
 
-Using --config option is useful if you have more than 1 account (e.g. an admin account and a personal account)
+Using --config option is useful if you have more than one account (e.g. an admin account and a personal account)

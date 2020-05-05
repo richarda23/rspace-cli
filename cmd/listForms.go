@@ -16,17 +16,18 @@ limitations under the License.
 package cmd
 
 import (
+	"strconv"
+
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 // listDocumentsCmd represents the listDocuments command
-var listFormsCmd = &cobra.Command{
+var listGroupsCmd = &cobra.Command{
 	Use:   "listForms",
 	Short: "Lists forms",
-	Long: `List forms, sorted or paginated, e.g.
-
+	Long:  `List forms, sorted or paginated`,
+	Example: `
 		  rspace eln listForms --orderBy name --maxResults 100
 	`,
 
@@ -88,6 +89,5 @@ func toIdentifiableForm(results []*rspace.FormInfo) []identifiable {
 	return rows
 }
 func init() {
-	elnCmd.AddCommand(listFormsCmd)
-	initPaginationFromArgs(listFormsCmd)
+	elnCmd.AddCommand(listGroupsCmd)
 }

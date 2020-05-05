@@ -34,6 +34,24 @@ func message(writer io.Writer, message string) {
 	fmt.Fprintln(writer, message)
 }
 
+func configurePagination() rspace.RecordListingConfig {
+	cfg := rspace.NewRecordListingConfig()
+	if len(sortOrderArg) > 0 && validateArrayContains(validSortOrders, []string{sortOrderArg}) {
+		cfg.SortOrder = sortOrderArg
+	}
+	if len(orderByArg) > 0 && validateArrayContains(validRecordOrders, []string{orderByArg}) {
+		cfg.OrderBy = orderByArg
+	}
+	// name sort is asc by default
+	if orderByArg == "name" && len(sortOrderArg) == 0 {
+		cfg.SortOrder = "asc"
+	}
+	if pageSizeArg > 0 {
+		cfg.PageSize = pageSizeArg
+	}
+	return cfg
+}
+
 // idFromGlobalId matches either globalId string or a numeric id, returning
 // the numeric id or an Error if input string cannot be parsed
 func idFromGlobalId(globalId string) (int, error) {
@@ -114,7 +132,7 @@ func printTableHeaders(ctx *Context, headers []columnDef) {
 }
 func abbreviate(toAbbreviate string, maxLen int) string {
 	if maxLen > 3 && len(toAbbreviate) > maxLen {
-		toAbbreviate = toAbbreviate[0:(maxLen-3)] + ".."
+		toAbbreviate = toAbbreviate[0:(maxLen-2)] + ".."
 	}
 	return toAbbreviate
 }

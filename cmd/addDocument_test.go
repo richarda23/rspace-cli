@@ -11,7 +11,6 @@ import (
 )
 
 func TestGetContent(t *testing.T) {
-
 	// plain text content
 	args := addDocArgs{}
 	args.Content = "abcdefg"

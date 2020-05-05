@@ -16,9 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"strconv"
+
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 var mediaTypeArg = ""
@@ -28,10 +29,16 @@ var listFilesCmd = &cobra.Command{
 	Use:   "listFiles",
 	Short: "Lists attachment files.",
 	Long: `List files, with optional 'mediaType' argument to restrict the type of files retrieved 
+	`,
+	Example: `
+		// list document files, usual pagination options are available	 
+		rspace eln listFiles --mediaType document --orderBy name --sortOrder asc --maxResults 100 
+		
+		// images
+		rspace eln listFiles --mediaType image
 
-		  rspace eln listFiles --mediaType document
-		  rspace eln listFiles --mediaType image
-		  rspace eln listFiles --mediaType av
+		// Media (Audio/Video)
+		rspace eln listFiles --mediaType av
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {

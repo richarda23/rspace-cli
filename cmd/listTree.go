@@ -16,20 +16,31 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
 	"strconv"
 	"strings"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
-var folderId int
+var folderIdArg string
 var treeFilterArg string
 
 // listTreeCmd represents the listTree command
 var listTreeCmd = &cobra.Command{
 	Use:   "listTree",
 	Short: "Lists the contents of a folder or notebook",
-	Long:  `Lists the content of the specified folder, or the home folder if no folder ID is set`,
+	Long: `Lists the content of the specified folder, or the home folder if no folder ID is set,
+	  optionally filtered by documents or notebooks`,
+	Example: `
+		// show subfolders of home folder
+		rspace eln listTree --filter folder
+
+		// show notebooks in specified folder
+		rspace eln listTree --filter notebook --folder 1234
+
+
+	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()
@@ -38,24 +49,12 @@ var listTreeCmd = &cobra.Command{
 	},
 }
 
-func configurePagination() rspace.RecordListingConfig {
-	cfg := rspace.NewRecordListingConfig()
-	if len(sortOrderArg) > 0 && validateArrayContains(validSortOrders, []string{sortOrderArg}) {
-		cfg.SortOrder = sortOrderArg
-	}
-	if len(orderByArg) > 0 && validateArrayContains(validRecordOrders, []string{orderByArg}) {
-		cfg.OrderBy = orderByArg
-	}
-	if pageSizeArg > 0 {
-		cfg.PageSize = pageSizeArg
-	}
-	return cfg
-}
 func doListTree(ctx *Context, cfg rspace.RecordListingConfig) {
 	var filters = make([]string, 0)
 	if len(treeFilterArg) > 0 {
 		filters = strings.Split(treeFilterArg, ",")
 	}
+	folderId, _ := idFromGlobalId(folderIdArg)
 	folderList, err := ctx.WebClient.FolderTree(cfg, folderId, filters)
 	if err != nil {
 		exitWithErr(err)
@@ -111,13 +110,8 @@ func resultsToBaseInfoList(results *rspace.FolderList) []rspace.BasicInfo {
 func init() {
 	elnCmd.AddCommand(listTreeCmd)
 	// is called directly, e.g.:
-	listTreeCmd.Flags().IntVar(&folderId, "folder", 0, "The id of the folder or notebook to list")
+	listTreeCmd.Flags().StringVar(&folderIdArg, "folder", "", "The id or global Id of the folder or notebook to list")
 	listTreeCmd.Flags().StringVar(&treeFilterArg, "filter", "", "Restrict results to 1 or more of: "+strings.Join(validTreeFilters, ","))
 
 	initPaginationFromArgs(listTreeCmd)
-}
-func initPaginationArgs() {
-	listTreeCmd.Flags().StringVar(&sortOrderArg, "sortOrder", "desc", "'asc' or 'desc'")
-	listTreeCmd.Flags().StringVar(&orderByArg, "orderBy", "lastModified", "orders results by 'name', 'created' or 'lastModified'")
-	listTreeCmd.Flags().IntVar(&pageSizeArg, "maxResults", 20, "Maximum number of results to retrieve")
 }

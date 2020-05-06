@@ -15,11 +15,11 @@ rspace-client eln createNotebook [flags]
 
 ```
 
-		// create a new notebook 'MyNotebook' in folder FL1234
-		rspace eln createNotebook --name MyNotebook --folder FL1234
+// create a new notebook 'MyNotebook' in folder FL1234
+rspace eln createNotebook --name MyNotebook --folder FL1234
 
-		//create an unnamed notebook in home folder
-		rspace eln createNotebook
+//create an unnamed notebook in home folder
+rspace eln createNotebook
 	
 ```
 

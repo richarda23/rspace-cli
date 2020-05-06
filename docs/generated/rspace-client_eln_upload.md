@@ -34,17 +34,17 @@ rspace-client eln upload [flags]
 ```
 
 
-		// upload a single file
-		rspace eln upload myimage.png
+	// upload a single file
+	rspace eln upload myimage.png
 
-		// do a dry run to see what would be uploaded
-		rspace eln upload file.doc imageFolder --recursive --dry-run
+	// do a dry run to see what would be uploaded
+	rspace eln upload file.doc imageFolder --recursive --dry-run
 
-		//use a logfile to record what was uploaded, in the event of cancellation or error
-		rspace eln upload folderWithManyFiles --recursive --logfile progress.txt
+	//use a logfile to record what was uploaded, in the event of cancellation or error
+	rspace eln upload folderWithManyFiles --recursive --logfile progress.txt
 
-		// upload a file and a folder, recursively, and generate a summary document
-		rspace eln upload file.doc imageFolder --recursive --add-summary
+	// upload a file and a folder, recursively, and generate a summary document
+	rspace eln upload file.doc imageFolder --recursive --add-summary
 	
 ```
 

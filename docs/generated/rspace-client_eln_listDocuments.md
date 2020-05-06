@@ -15,17 +15,17 @@ rspace-client eln listDocuments [flags]
 
 ```
 
-		// A global search over names, tags, file and text content
-		 rspace eln listDocuments --query myexperiment
+// A global search over names, tags, file and text content
+rspace eln listDocuments --query myexperiment
 
-		// Get documents whose name starts with 'experiment' OR are created in 2020 or later
-		rspace eln listDocuments --or --name experiment* --createdAfter 2020-01-01
+// Get documents whose name starts with 'experiment' OR are created in 2020 or later
+rspace eln listDocuments --or --name experiment* --createdAfter 2020-01-01
 
-		//  list the first hundred documents created
-		rspace eln listDocuments --orderBy created --sortOrder asc --maxResults 100
+//  list the first hundred documents created
+rspace eln listDocuments --orderBy created --sortOrder asc --maxResults 100
 
-		// list documents created from a particular form:
-		rspace eln listDocuments --form FM12345
+// list documents created from a particular form:
+rspace eln listDocuments --form FM12345
 	
 ```
 

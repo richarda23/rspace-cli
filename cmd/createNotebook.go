@@ -33,11 +33,11 @@ var createNotebookCmd = &cobra.Command{
 	Long: `Create a new notebook, with an optional name and parent folder
 	`,
 	Example: `
-		// create a new notebook 'MyNotebook' in folder FL1234
-		rspace eln createNotebook --name MyNotebook --folder FL1234
+// create a new notebook 'MyNotebook' in folder FL1234
+rspace eln createNotebook --name MyNotebook --folder FL1234
 
-		//create an unnamed notebook in home folder
-		rspace eln createNotebook
+//create an unnamed notebook in home folder
+rspace eln createNotebook
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()

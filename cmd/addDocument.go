@@ -38,20 +38,19 @@ var addDocumentCmd = &cobra.Command{
 	Use:   "addDocument",
 	Short: "Creates a new basic document with optional tags and content",
 	Long: `Create a new document, with an optional name and parent folder.
-
-	  If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
+	If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
 	  tags to preserve formatting.
 	`,
 	Example: `
-	// create a doc tags and HTML content
-	rspace eln  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.html
+// create a doc tags and HTML content
+rspace eln  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.html
 
-	// create a doc with tags and  plain-text content, which will be wrapped in '<pre>' tag
-	rspace eln  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.txt
+// create a doc with tags and  plain-text content, which will be wrapped in '<pre>' tag
+rspace eln  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.txt
 
-	// create a doc using verbatim text
-	rspace eln  addDocument --name doc1  --content "some content"
-	`,
+// create a doc using verbatim text
+rspace eln  addDocument --name doc1  --content "some content"
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()
 		doAddDocRun(addDocArgV, context, context.WebClient)

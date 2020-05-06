@@ -27,12 +27,12 @@ var createFolderArgS = createFolderArg{}
 var createFolderCmd = &cobra.Command{
 	Use:   "createFolder",
 	Short: "Creates a new Folder",
-	Long: `Create a new Folder, with an optional name and parent folder ID
+	Long: `
+Create a new Folder, with an optional name and parent folder ID
 	`,
 	Example: `
-		// make a new folder in folder with id FL1234
-		rspace eln createFolder --name MyFolder --folder FL1234
-	
+// make a new folder in folder with id FL1234
+rspace eln createFolder --name MyFolder --folder FL1234
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		post := rspace.FolderPost{IsNotebook: false}

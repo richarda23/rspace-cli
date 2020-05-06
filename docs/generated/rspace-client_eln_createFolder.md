@@ -4,6 +4,7 @@ Creates a new Folder
 
 ### Synopsis
 
+
 Create a new Folder, with an optional name and parent folder ID
 	
 
@@ -15,9 +16,8 @@ rspace-client eln createFolder [flags]
 
 ```
 
-		// make a new folder in folder with id FL1234
-		rspace eln createFolder --name MyFolder --folder FL1234
-	
+// make a new folder in folder with id FL1234
+rspace eln createFolder --name MyFolder --folder FL1234
 	
 ```
 

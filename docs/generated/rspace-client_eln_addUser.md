@@ -4,17 +4,20 @@ Adds a new user account
 
 ### Synopsis
 
-Requires sysadmin permission. Add a new user account
-	  addUser --username newusername --email someone@somwhere.com --role user|pi| --pwdfile passwordfile
-
-	  or minimal shorthand as comma-separated triple:
-
-	        addUser username,email,role,passwordfile
-
+Requires sysadmin permission. Add a new user account rm, equires username and email
+	at a minimum. Supply an initial password in a file.
 	
 
 ```
 rspace-client eln addUser [flags]
+```
+
+### Examples
+
+```
+ 
+	addUser --username newusername --email someone@somwhere.com --role user|pi| --pwdfile passwordfile
+	
 ```
 
 ### Options

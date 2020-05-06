@@ -16,9 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"io/ioutil"
+
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	//"fmt"
 )
 
@@ -32,13 +33,11 @@ var userArgs = addUserArgs{}
 var addUserCmd = &cobra.Command{
 	Use:   "addUser",
 	Short: "Adds a new user account",
-	Long: `Requires sysadmin permission. Add a new user account
-	  addUser --username newusername --email someone@somwhere.com --role user|pi| --pwdfile passwordfile
-
-	  or minimal shorthand as comma-separated triple:
-
-	        addUser username,email,role,passwordfile
-
+	Long: `Requires sysadmin permission. Add a new user account rm, equires username and email
+	at a minimum. Supply an initial password in a file.
+	`,
+	Example: ` 
+	addUser --username newusername --email someone@somwhere.com --role user|pi| --pwdfile passwordfile
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		userPost := validateFlags()

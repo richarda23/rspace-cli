@@ -31,14 +31,14 @@ var listFilesCmd = &cobra.Command{
 	Long: `List files, with optional 'mediaType' argument to restrict the type of files retrieved 
 	`,
 	Example: `
-		// list document files, usual pagination options are available	 
-		rspace eln listFiles --mediaType document --orderBy name --sortOrder asc --maxResults 100 
-		
-		// images
-		rspace eln listFiles --mediaType image
+// list document files, usual pagination options are available	 
+rspace eln listFiles --mediaType document --orderBy name --sortOrder asc --maxResults 100 
 
-		// Media (Audio/Video)
-		rspace eln listFiles --mediaType av
+// images
+rspace eln listFiles --mediaType image
+
+// Media (Audio/Video)
+rspace eln listFiles --mediaType av
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {

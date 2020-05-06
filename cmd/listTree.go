@@ -33,14 +33,12 @@ var listTreeCmd = &cobra.Command{
 	Long: `Lists the content of the specified folder, or the home folder if no folder ID is set,
 	  optionally filtered by documents or notebooks`,
 	Example: `
-		// show subfolders of home folder
-		rspace eln listTree --filter folder
+// show subfolders of home folder
+rspace eln listTree --filter folder
 
-		// show notebooks in specified folder
-		rspace eln listTree --filter notebook --folder 1234
-
-
-	`,
+// show notebooks in specified folde
+rspace eln listTree --filter notebook --folder 1234
+`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()

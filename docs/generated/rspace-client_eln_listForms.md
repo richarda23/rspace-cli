@@ -14,7 +14,7 @@ rspace-client eln listForms [flags]
 
 ```
 
-		  rspace eln listForms --orderBy name --maxResults 100
+rspace eln listForms --orderBy name --maxResults 100
 	
 ```
 

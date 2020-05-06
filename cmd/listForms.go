@@ -28,7 +28,7 @@ var listGroupsCmd = &cobra.Command{
 	Short: "Lists forms",
 	Long:  `List forms, sorted or paginated`,
 	Example: `
-		  rspace eln listForms --orderBy name --maxResults 100
+rspace eln listForms --orderBy name --maxResults 100
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {

@@ -5,8 +5,8 @@ Creates a new basic document with optional tags and content
 ### Synopsis
 
 Create a new document, with an optional name and parent folder.
-	If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
-	  tags to preserve formatting.
+If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
+tags to preserve formatting.
 	
 
 ```

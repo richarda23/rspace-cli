@@ -15,14 +15,14 @@ rspace-client eln listFiles [flags]
 
 ```
 
-		// list document files, usual pagination options are available	 
-		rspace eln listFiles --mediaType document --orderBy name --sortOrder asc --maxResults 100 
-		
-		// images
-		rspace eln listFiles --mediaType image
+// list document files, usual pagination options are available	 
+rspace eln listFiles --mediaType document --orderBy name --sortOrder asc --maxResults 100 
 
-		// Media (Audio/Video)
-		rspace eln listFiles --mediaType av
+// images
+rspace eln listFiles --mediaType image
+
+// Media (Audio/Video)
+rspace eln listFiles --mediaType av
 	
 ```
 

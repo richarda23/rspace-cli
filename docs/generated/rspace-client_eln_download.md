@@ -5,8 +5,8 @@ Download attachment files by their ID
 ### Synopsis
 
 Downloads 1 or more files by their ID. 'dir' flag is is optional; if not set
-	will download to current folder. The Ids should be for files in the Gallery. these files typically
-	 have global ID prefix 'GL'
+will download to current folder. The Ids should be for files in the Gallery. these files typically
+have global ID prefix 'GL'
 	
 
 ```
@@ -17,14 +17,14 @@ rspace-client eln download [flags]
 
 ```
 
-	 		// download 3 files to current folder by their ID
-			rspace eln download 1234 5678 1234
+// download 3 files to current folder by their ID
+rspace eln download 1234 5678 1234
 
-			// download a file to the given directory
-			rspace eln download 1234 --dir /downloadFolder
+// download a file to the given directory
+rspace eln download 1234 --dir /downloadFolder
 
-			// globalIds work too
-			rspace eln download GL1234 GL12345--dir /downloadFolder
+// globalIds work too
+rspace eln download GL1234 GL12345--dir /downloadFolder
 	
 ```
 

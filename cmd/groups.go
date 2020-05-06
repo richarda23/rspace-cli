@@ -28,7 +28,7 @@ var listFormsCmd = &cobra.Command{
 	Short: "Lists the groups you are a member of.",
 	Long:  `List all groups that you are a member of`,
 	Example: `
-	rspace eln groups
+rspace eln groups
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {

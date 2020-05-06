@@ -38,8 +38,8 @@ var addDocumentCmd = &cobra.Command{
 	Use:   "addDocument",
 	Short: "Creates a new basic document with optional tags and content",
 	Long: `Create a new document, with an optional name and parent folder.
-	If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
-	  tags to preserve formatting.
+If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
+tags to preserve formatting.
 	`,
 	Example: `
 // create a doc tags and HTML content

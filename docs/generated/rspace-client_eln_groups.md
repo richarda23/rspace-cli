@@ -14,7 +14,7 @@ rspace-client eln groups [flags]
 
 ```
 
-	rspace eln groups
+rspace eln groups
 	
 ```
 

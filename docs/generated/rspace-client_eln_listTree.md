@@ -15,14 +15,12 @@ rspace-client eln listTree [flags]
 
 ```
 
-		// show subfolders of home folder
-		rspace eln listTree --filter folder
+// show subfolders of home folder
+rspace eln listTree --filter folder
 
-		// show notebooks in specified folder
-		rspace eln listTree --filter notebook --folder 1234
+// show notebooks in specified folde
+rspace eln listTree --filter notebook --folder 1234
 
-
-	
 ```
 
 ### Options

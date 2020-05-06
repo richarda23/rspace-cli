@@ -5,7 +5,7 @@ Lists events and actions
 ### Synopsis
 
 Lists events and actions. You can filter by action, user, date range or by
-		ids of documents.
+ids of documents.
 	
 
 ```
@@ -16,14 +16,14 @@ rspace-client eln listActivity [flags]
 
 ```
 
-	// get creation and write events for first 4 months of 2020
-	rspace eln listActivity --actions create,write --afterDate 2020-01-01 --beforeDate 2020-05-01 
+// get creation and write events for first 4 months of 2020
+rspace eln listActivity --actions create,write --afterDate 2020-01-01 --beforeDate 2020-05-01 
 
-	// get full activity for a particular document
-	rspace eln listACtivity --id SD12345
+// get full activity for a particular document
+rspace eln listACtivity --id SD12345
 
-	// get activity for a particular user (PIs and admins only)
-	rspace eln listACtivity --users bob123, jacqueline
+// get activity for a particular user (PIs and admins only)
+rspace eln listACtivity --users bob123, jacqueline
 	
 ```
 

@@ -1,0 +1,5 @@
+- test suite
+- versioning information, sync version of git tag with bintray deploy
+- documentation of where to get the binary files, how to set config fid
+
+- addDocument test main method (mock Document service)

@@ -201,7 +201,7 @@ func importFile(ctx *Context, fileInfo *scannedFileInfo) *rspace.DocumentInfo {
 func init() {
 	elnCmd.AddCommand(importWordCmd)
 	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.RecursiveFlag, "recursive", false, "If uploading a folder, uploads contents recursively.")
-	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.DryrunFlag, "dry-run", false, "Performs a dry-run, reportImports on what would be uploaded")
+	importWordCmd.PersistentFlags().BoolVar(&importArgsArg.DryrunFlag, "dry-run", false, "Performs a dry-run, reporting on what would be uploaded")
 	importWordCmd.PersistentFlags().StringVar(&importArgsArg.LogfileArg, "logfile", "", "A log file to record upload progress, if not set will log to standard error")
 	importWordCmd.PersistentFlags().IntVar(&importArgsArg.TargetFolder,
 		"folder", 0, "ID of Target folder for imported Word files")

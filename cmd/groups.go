@@ -23,7 +23,7 @@ import (
 )
 
 // listDocumentsCmd represents the listDocuments command
-var listFormsCmd = &cobra.Command{
+var listGroupsCmd = &cobra.Command{
 	Use:   "groups",
 	Short: "Lists the groups you are a member of.",
 	Long:  `List all groups that you are a member of`,
@@ -79,6 +79,6 @@ func (ds *GroupListFormatter) ToTable() *TableResult {
 
 }
 func init() {
-	elnCmd.AddCommand(listFormsCmd)
-	initPaginationFromArgs(listFormsCmd)
+	elnCmd.AddCommand(listGroupsCmd)
+	initPaginationFromArgs(listGroupsCmd)
 }

@@ -23,7 +23,7 @@ import (
 )
 
 // listDocumentsCmd represents the listDocuments command
-var listGroupsCmd = &cobra.Command{
+var listFormsCmd = &cobra.Command{
 	Use:   "listForms",
 	Short: "Lists forms",
 	Long:  `List forms, sorted or paginated`,
@@ -89,5 +89,5 @@ func toIdentifiableForm(results []*rspace.FormInfo) []identifiable {
 	return rows
 }
 func init() {
-	elnCmd.AddCommand(listGroupsCmd)
+	elnCmd.AddCommand(listFormsCmd)
 }

@@ -52,6 +52,19 @@ func configurePagination() rspace.RecordListingConfig {
 	return cfg
 }
 
+func idsFromGlobalIds(globalIds []string) []int {
+	ids := make([]int, 0)
+	for _, v := range globalIds {
+		id, err := idFromGlobalId(v)
+		if err != nil || id == 0 {
+			messageStdErr(fmt.Sprintf("%s is not a valid identifier, skipping", v))
+		} else {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
 // idFromGlobalId matches either globalId string or a numeric id, returning
 // the numeric id or an Error if input string cannot be parsed
 func idFromGlobalId(globalId string) (int, error) {

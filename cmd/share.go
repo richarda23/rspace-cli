@@ -25,9 +25,10 @@ import (
 )
 
 type shareArgs struct {
-	permArg     string
-	userIdsArg  string
-	groupIdsArg string
+	permArg         string
+	userIdsArg      string
+	groupIdsArg     string
+	targetFolderArg int
 }
 
 var shareArgsa shareArgs
@@ -37,10 +38,17 @@ var shareCmd = &cobra.Command{
 	Use:   "share",
 	Args:  cobra.MinimumNArgs(1),
 	Short: "Shares one or more documents or notebooks with one or more users or groups",
-	Long:  `Share documents or notebooks with groups and individual users`,
+	Long: `Share documents or notebooks with groups and individual users
+	Documents/notebooks can be specified by plain IDs (e.g. 12345) or by Global Ids (e.g. SD12345)
+	`,
 	Example: `
-// share a document and notebook with edit permission with twp groups
-rspace eln share SD12345 NB23456 --groups 122345,45678 --permission edit
+// share a document and notebook with edit permission with a group into a designated folder
+rspace eln share SD12345 NB23456 --groups 122345--permission edit --folder 7689
+
+// Share a document with users in my group with read permission
+rspace eln share 12345 --users 122345,45678
+
+
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -76,7 +84,7 @@ func doShare(ctx *Context, args []string, shareArgs *shareArgs) {
 	if ok := validateArrayContains([]string{"read", "edit"}, []string{perm}); !ok {
 		exitWithStdErrMsg(fmt.Sprintf("%s is not a valid permission", perm))
 	}
-	// to do send the post & check results, test
+	//TODO remove info logging from client, support target folder, don't send 0 as a value
 	uPosts := make([]rspace.UserShare, 0)
 	if len(uIds) > 0 {
 		for _, id := range uIds {
@@ -84,13 +92,17 @@ func doShare(ctx *Context, args []string, shareArgs *shareArgs) {
 		}
 	}
 	post.Users = uPosts
+	gPosts := make([]rspace.GroupShare, 0)
+
 	if len(gIds) > 0 {
-		gPosts := make([]rspace.GroupShare, 0)
 		for _, id := range gIds {
-			gPosts = append(gPosts, rspace.GroupShare{id, perm, 326})
+			gPosts = append(gPosts, rspace.GroupShare{Id: id, Permission: perm})
 		}
-		post.Groups = gPosts
 	}
+	if len(gPosts) == 1 {
+		gPosts[0].SharedFolderId = shareArgsa.targetFolderArg
+	}
+	post.Groups = gPosts
 	var err error
 	shares, err := ctx.WebClient.Share(&post)
 	if err != nil {
@@ -147,4 +159,6 @@ func init() {
 		"Comma separated list of user Ids to share with")
 	shareCmd.Flags().StringVar(&shareArgsa.permArg, "permission", "read",
 		"Permission - 'read' or 'edit'")
+	shareCmd.Flags().IntVar(&shareArgsa.targetFolderArg, "folder", 0,
+		"Target folder id (group sharing only)")
 }

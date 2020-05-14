@@ -1,27 +1,34 @@
-## rspace-client eln listForms
+## rspace-client eln addNotebook
 
-Lists forms
+Creates a new notebook
 
 ### Synopsis
 
-List forms, sorted or paginated
+Create a new notebook, with an optional name and parent folder
+	
 
 ```
-rspace-client eln listForms [flags]
+rspace-client eln addNotebook [flags]
 ```
 
 ### Examples
 
 ```
 
-rspace eln listForms --orderBy name --maxResults 100
+// add a new notebook 'MyNotebook' in folder FL1234
+rspace eln addNotebook --name MyNotebook --folder FL1234
+
+//add an unnamed notebook in home folder
+rspace eln addNotebook
 	
 ```
 
 ### Options
 
 ```
-  -h, --help   help for listForms
+  -p, --folder string   An id for the folder that will contain the new notebook
+  -h, --help            help for addNotebook
+  -n, --name string     A name for the notebook
 ```
 
 ### Options inherited from parent commands

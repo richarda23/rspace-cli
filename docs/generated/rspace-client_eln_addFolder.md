@@ -1,22 +1,32 @@
-## rspace-client eln listUsers
+## rspace-client eln addFolder
 
-Lists users - requires sysadmin role!
+Creates a new Folder
 
 ### Synopsis
 
-List users, sorted or paginated, e.g.
 
-		  rspace eln listUsers
+Create a new Folder, with an optional name and parent folder ID
 	
 
 ```
-rspace-client eln listUsers [flags]
+rspace-client eln addFolder [flags]
+```
+
+### Examples
+
+```
+
+// make a new folder in folder with id FL1234
+rspace eln addFolder --name MyFolder --folder FL1234
+	
 ```
 
 ### Options
 
 ```
-  -h, --help   help for listUsers
+  -p, --folder string   An id for the folder that will contain the new folder
+  -h, --help            help for addFolder
+  -n, --name string     A name for the folder
 ```
 
 ### Options inherited from parent commands

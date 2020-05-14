@@ -13,6 +13,8 @@ It is designed a supplement to the web interface for tasks such as:
 * Integrating cleanly into your data-management workflows
 * Admin functions such as ad-hoc account creation
 
+A [Cookbook](docs/Cookbook.md) shows some uses of the CLI.
+
 It is written in the Go programming language.
 
 ### Downloading

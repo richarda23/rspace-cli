@@ -33,7 +33,6 @@ var addNotebookCmd = &cobra.Command{
 	Long: `Create a new notebook, with an optional name and parent folder
 	`,
 	Aliases: []string{"createNotebook", "notebookAdd", "nbAdd"},
-
 	Example: `
 // add a new notebook 'MyNotebook' in folder FL1234
 rspace eln addNotebook --name MyNotebook --folder FL1234

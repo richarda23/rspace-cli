@@ -1,9 +1,11 @@
 Here are some ideas on how to use the CLI for various use-cases.
 
-1. Uploading a folder of files to the Gallery
+## 1. Uploading a folder of files to the Gallery
 
+### Scenario
 You have many files to upload and doing it through the web interface is tedious.
 
+### Solution
     rspace eln upload myFolder/ --recursive --add-summary
 
 This will upload all files in directory (and its subdirectories) and upload them, generating a summary document with links to all the uploaded files.
@@ -14,9 +16,13 @@ If you want more control over what you upload you can combine with standard Unix
 
 All the files uploaded will be placed in the 'ApiInbox' folder of their respective Galleries.
 
-2. Downloading a folder of files  from the Gallery
+## 2. Downloading a folder of files  from the Gallery
+
+### Scenario
 
 You have a folder of files in RSpace Gallery and you want to download them all. Using the user interface to download each file one at a time is tiresome.
+
+### Solution
 
 Use the `listTree` command to navigate through   file tree. Or, you can get the folder ID from the 'info' popup in the web application.
 
@@ -26,9 +32,13 @@ Once you have a folder ID (in this example, 9), get the folder contents in 'quie
 
     rspace eln listTree --folder 9 -f quiet | xargs ./rs eln download
 
-3. Sharing many items at once
+## 3. Sharing many items at once
 
-You have a folder full of RSpace documents. You'd like to share them all with your group, but don't want them organised into a notebook, and sharing them one a time is tedious
+### Scenario
+
+You have a folder full of RSpace documents. You'd like to share them all with your group, but don't want them organised into a notebook, and sharing them one a time is tedious and error-prone
+
+### Solution
 
 To share 1 or more items we can use the `share` command. To share a single item:
 
@@ -56,9 +66,13 @@ Note that we include the `--filter` option - this is so that we don't attempt to
 
 If we wanted to share with 'read' permission only we can omit the `--permission` argument, or explicitly state `--permission read`.
 
-4. Importing many Word / OpenOffice Documents
+## 4. Importing many Word / OpenOffice Documents
+
+### Scenario
 
 You have a many Word documents and you'd like to import them into RSpace as native RSpace documents. 
+
+### Solution
 
 This works in a similar way to `upload`. You can supply one or more folders and files, and 
 the command will filter for Word documents based on extension (.odt, .doc, .docx), then import them into RSpace.
@@ -68,4 +82,28 @@ the command will filter for Word documents based on extension (.odt, .doc, .docx
 If you're not quite sure what you'll end up importing, you can use the `--dry-run` flag which will show you what would be uploaded, but doesn't change anything on RSpace.
 
     rspace eln importWord myfolder --dry-run
-    
+
+## 5. Inspecting XML exports 
+
+### Scenario 
+
+You have been making regular exports of your RSpace documents and have accumulated many .zip files over time, some of them quite big. You'd like to know what's inside withoout having to 
+unzip or import back into RSpace
+
+### Solution
+
+The `archive` command is different from other commands in this softawre as it doesn't make calls to an RSpace server - it works with files on your device. 
+
+    rspace archive myArchive1.zip myArchive2.zip --summary
+
+will parse the archive (without extracting it), print out the manifest file and summarise the content of the archive, including the date range of documents created in the archive and also
+a list of authors.
+
+Example output:
+
+```
+file      	Total Docs	minDate               	maxDate               	Authors                                           
+rs2.zip   	2         	2020-05-10T18:39:05Z  	2020-05-16T09:21:24Z  	user5e                                            
+rs3.zip   	3         	2020-05-02T11:32:09Z  	2020-05-17T20:01:58Z  	user5e 
+```
+

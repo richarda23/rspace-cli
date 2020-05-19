@@ -19,30 +19,84 @@ var archiveCmd = &cobra.Command{
 	Short: "Utility for inspecting RSpace XML archives",
 	Long: `Inspect and summarise XML archives and their manifest without opening or importing into RSpace.
 
---summary argument calculates:
+--summary argument calculates for one or more archives:
 
 - the total number of documents
 - the document creators
-- the date range of documents created in the archive`,
+- the date range of documents created in the archive
+
+Results are printed 1 row per archive file.
+
+--xsummary works with a *single* archive only and lists information about each document in the archive,
+ including name, tags, modification/creation dates and owner.
+
+ Results are printed 1 row per *document*.
+
+`,
 	Args: cobra.MinimumNArgs(1),
 	Example: `
 // show manifest
 rspace archive myArchive.zip --manifest
 
-//summarise the content in the archive
-rspace archive myArchive.zip --summary
+//summarise the content in one or more archive files
+rspace archive myArchive.zip otherArchive.zip --summary
+
+//extended summary of a single archive in csv format
+rspace archive myArchive.zip --xsummary --outputFormat csv
+
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := initialiseContext()
-		summaries, err := inspectArchives(args, &archiveArgsA)
-		if err != nil {
-			exitWithErr(err)
-		}
 		if archiveArgsA.summaryArg {
+			summaries, err := inspectArchives(args, &archiveArgsA)
+			if err != nil {
+				exitWithErr(err)
+			}
 			ctx.writeResult(&zipSummaryFormatter{&zipSummaryList{summaries}})
+		} else if archiveArgsA.summaryXArg {
+			summaries, err := xSummary(args, &archiveArgsA)
+			if err != nil {
+				exitWithErr(err)
+			}
+			ctx.writeResult(&xSummaryFormatter{&xSummaryList{summaries}})
+
 		}
 	},
+}
+
+type xSummaryList struct {
+	XSummaryList []*xmlDoc
+}
+
+type xSummaryFormatter struct {
+	xSummaries *xSummaryList
+}
+
+func (xs *xSummaryFormatter) ToJson() string {
+	return prettyMarshal(xs.xSummaries)
+}
+
+func (ds *xSummaryFormatter) ToQuiet() []identifiable {
+	rows := make([]identifiable, 0)
+	for _, res := range ds.xSummaries.XSummaryList {
+		rows = append(rows, identifiable{res.Name})
+	}
+	return rows
+}
+
+func (ds *xSummaryFormatter) ToTable() *TableResult {
+	headers := []columnDef{columnDef{"Name", 10}, columnDef{"Tags", 15},
+		columnDef{"created", 22}, columnDef{"lastModified", 22}, columnDef{"Owner", 20}}
+
+	rows := make([][]string, 0)
+	for _, res := range ds.xSummaries.XSummaryList {
+		data := []string{res.Name, res.Tags,
+			res.CreationDate.Format(time.RFC3339), res.LastModifiedDate.Format(time.RFC3339),
+			res.CreatedBy}
+		rows = append(rows, data)
+	}
+	return &TableResult{headers, rows}
 }
 
 type zipSummaryList struct {
@@ -80,13 +134,33 @@ func (ds *zipSummaryFormatter) ToTable() *TableResult {
 
 type archiveArgs struct {
 	summaryArg  bool
+	summaryXArg bool
 	manifestArg bool
 }
 
 var archiveArgsA archiveArgs
 
+func xSummary(args []string, config *archiveArgs) ([]*xmlDoc, error) {
+	if len(args) > 1 {
+		return nil, errors.New("Extended summary only available on a single archive file")
+	}
+	file := args[0]
+	if filepath.Ext(file) != ".zip" {
+		return nil, errors.New(fmt.Sprintf("%s is not a zip file", file))
+	}
+	reader, err := zip.OpenReader(file)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Couldn't open the zip file %s", file))
+	}
+	parsedDocs := parseArchiveFiles(reader)
+	return parsedDocs, nil
+
+}
+
 func inspectArchives(args []string, config *archiveArgs) ([]*zipSummary, error) {
+
 	zipSummaries := make([]*zipSummary, 0)
+
 	for _, file := range args {
 		if filepath.Ext(file) != ".zip" {
 			messageStdErr(fmt.Sprintf("%s is not a zip file, skipping", file))
@@ -106,11 +180,12 @@ func inspectArchives(args []string, config *archiveArgs) ([]*zipSummary, error) 
 				messageStdErr(string(bytes))
 			}
 		}
+		parsedDocs := parseArchiveFiles(reader)
 		if archiveArgsA.summaryArg {
 			//messageStdErr(fmt.Sprintf("Summary for %s:", file))
-			files := parseArchiveFiles(reader)
-			files.FileName = filepath.Base(file)
-			zipSummaries = append(zipSummaries, files)
+			summary, _ := summarise(parsedDocs)
+			summary.FileName = filepath.Base(file)
+			zipSummaries = append(zipSummaries, summary)
 		}
 	}
 
@@ -123,13 +198,14 @@ type xmlDoc struct {
 	CreatedBy        string    `xml:"createdBy"`
 	CreationDate     time.Time `xml:"creationDate"`
 	LastModifiedDate time.Time `xml:"lastModifiedDate"`
+	Tags             string    `xml:"tag"`
 }
 
 func parseTimestamp(timestamp string) (time.Time, error) {
 	return time.Parse(time.RFC3339, timestamp)
 }
 
-func parseArchiveFiles(reader *zip.ReadCloser) *zipSummary {
+func parseArchiveFiles(reader *zip.ReadCloser) []*xmlDoc {
 	parsedDocs := make([]*xmlDoc, 0)
 	for _, f := range reader.File {
 		fname := filename(f)
@@ -141,8 +217,7 @@ func parseArchiveFiles(reader *zip.ReadCloser) *zipSummary {
 			parsedDocs = append(parsedDocs, &mydoc)
 		}
 	}
-	summary, _ := summarise(parsedDocs)
-	return summary
+	return parsedDocs
 }
 
 type zipSummary struct {
@@ -196,6 +271,7 @@ func init() {
 	rootCmd.AddCommand(archiveCmd)
 	// is called directly, e.g.:
 	archiveCmd.Flags().BoolVar(&archiveArgsA.summaryArg, "summary", false, "Show summary of content")
+	archiveCmd.Flags().BoolVar(&archiveArgsA.summaryXArg, "xsummary", false, "Show Extended summary of content")
 	archiveCmd.Flags().BoolVar(&archiveArgsA.manifestArg, "manifest", true, "Shows manifest of the archive")
 	archiveCmd.Flags().StringVar(&outputFormatArg, "outputFormat", "table", "Output format: one of 'json','table', 'csv' or 'quiet' ")
 	archiveCmd.Flags().StringVar(&outFileArg, "outFile", "", "Output file for program output")

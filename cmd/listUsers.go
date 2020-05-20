@@ -16,32 +16,47 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/richarda23/rspace-client-go/rspace"
-	"github.com/spf13/cobra"
 	"strconv"
 	"time"
+
+	"github.com/richarda23/rspace-client-go/rspace"
+	"github.com/spf13/cobra"
 )
 
 // listDocumentsCmd represents the listDocuments command
 var listUsersCmd = &cobra.Command{
 	Use:   "listUsers",
 	Short: "Lists users - requires sysadmin role!",
-	Long: `List users, sorted or paginated, e.g.
+	Long: `List users, sorted or paginated.
 
-		  rspace eln listUsers
+Please note that currently users are ordered by account creation date only (default is most recent first),
+but there is no limit on the page size, so you can retrieve all users in one query, then
+filter or sort using standard Unix utilities.
+
+	`,
+	Example: `
+// find out how many users you have:
+rspace eln listUsers --maxResults 20 -f json | jq '.TotalHits'
+
+// or just use 'grep' if you don't have 'jq' installed:
+rspace eln listUsers --maxResults 20 -f json | grep TotalHits
+
+// now you can get all users in one go and sort by any column e.g. by username:
+rspace eln listUsers --maxResults 120 | sort -k2
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()
-		//cfg := configurePagination()
-		doListusers(context)
+		cfg := configurePagination()
+		cfg.OrderBy = "creationDate"
+		doListusers(context, cfg)
 	},
 }
 
-func doListusers(ctx *Context) {
+func doListusers(ctx *Context, cfg rspace.RecordListingConfig) {
 	var usersList *rspace.UserList
 	var err error
-	usersList, err = ctx.WebClient.Users(time.Time{}, time.Time{})
+	usersList, err = ctx.WebClient.Users(time.Time{}, time.Time{}, cfg)
 	if err != nil {
 		exitWithErr(err)
 	}
@@ -90,6 +105,5 @@ func toIdentifiableUser(results []*rspace.UserInfo) []identifiable {
 }
 func init() {
 	elnCmd.AddCommand(listUsersCmd)
-	//TODO paginate/sort/ query by lastLogin/creation
-	//initPaginationFromArgs(listUsersCmd)
+	initPaginationFromArgs(listUsersCmd)
 }

@@ -21,21 +21,21 @@ func TestReadArchive(t *testing.T) {
 		t.Fatalf("Expected %d results but got %d", 1, len(summaries))
 	}
 	summary := summaries[0]
-	if summary.docCount != 3 {
-		t.Fatalf("Expected %d docs in archive but got %d", 3, summary.docCount)
+	if summary.DocCount != 3 {
+		t.Fatalf("Expected %d docs in archive but got %d", 3, summary.DocCount)
 	}
-	if summary.minDate.IsZero() {
+	if summary.MinDate.IsZero() {
 		t.Fatalf("Min date is Zero but should be set")
 	}
-	if summary.maxDate.IsZero() {
+	if summary.MaxDate.IsZero() {
 		t.Fatalf("Max date is Zero but should be set")
 	}
 
-	if summary.minDate.After(summary.maxDate) {
-		t.Fatalf("Min date %s must be before %s", summary.minDate.String(), summary.maxDate.String())
+	if summary.MinDate.After(summary.MaxDate) {
+		t.Fatalf("Min date %s must be before %s", summary.MinDate.String(), summary.MaxDate.String())
 	}
 
-	authors := summary.authors
+	authors := summary.Authors
 	if authors[0] != "user5e" {
 		t.Fatalf("Authors should be user5e")
 	}

@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
@@ -68,11 +69,17 @@ func (ds *GroupListFormatter) ToTable() *TableResult {
 	results := ds.GroupList.Groups
 
 	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Name", 25},
-		columnDef{"Type", 10}, columnDef{"SharedFolderId", 16}}
+		columnDef{"Type", 10}, columnDef{"SharedFolderId", 14}, columnDef{"Members", 20}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
-		data := []string{strconv.Itoa(res.Id), res.Name, res.Type, strconv.Itoa(res.SharedFolderId)}
+		members := make([]string, 0)
+		for _, v := range res.Members {
+			members = append(members, v.Username)
+		}
+		memberStr := strings.Join(members, ";")
+		data := []string{strconv.Itoa(res.Id), res.Name, res.Type,
+			strconv.Itoa(res.SharedFolderId), memberStr}
 		rows = append(rows, data)
 	}
 	return &TableResult{headers, rows}

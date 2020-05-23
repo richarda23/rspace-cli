@@ -90,4 +90,5 @@ func toIdentifiableForm(results []*rspace.FormInfo) []identifiable {
 }
 func init() {
 	elnCmd.AddCommand(listFormsCmd)
+	initPaginationFromArgs(listFormsCmd)
 }

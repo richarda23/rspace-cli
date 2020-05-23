@@ -42,7 +42,7 @@ If a file is a file of HTML content, it is loaded verbatim, otherwise, plain tex
 tags to preserve formatting.
 	`,
 	Example: `
-// create a doc tags and HTML content
+// create a new document with tags and HTML content
 rspace eln  addDocument --name doc1 --tags tag1,tag2 --contentFile textToPutInDoc.html
 
 // create a doc with tags and  plain-text content, which will be wrapped in '<pre>' tag
@@ -58,7 +58,7 @@ rspace eln  addDocument --name doc1  --content "some content"
 }
 
 type DocClient interface {
-	NewBasicDocumentWithContent(name, tags, content string) (*rspace.DocumentInfo, error)
+	NewBasicDocumentWithContent(name, tags, content string) (*rspace.Document, error)
 }
 
 func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) {
@@ -70,7 +70,7 @@ func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) {
 		exitWithErr(err)
 	}
 	docList := rspace.DocumentList{}
-	docList.Documents = []rspace.DocumentInfo{*newDoc}
+	docList.Documents = []rspace.DocumentInfo{*(newDoc.DocumentInfo)}
 	var dlf = DocListFormatter{&docList}
 	context.writeResult(&dlf)
 }

@@ -16,7 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/csv"
+	"errors"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/richarda23/rspace-client-go/rspace"
@@ -29,6 +34,9 @@ type addDocArgs struct {
 	Tags            string
 	ContentFile     string
 	Content         string
+	FormId          string
+	InputData       string
+	InputDataFormat string
 }
 
 var addDocArgV = addDocArgs{}
@@ -53,26 +61,106 @@ rspace eln  addDocument --name doc1  --content "some content"
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()
-		doAddDocRun(addDocArgV, context, context.WebClient)
+		err := doAddDocRun(addDocArgV, context, context.WebClient)
+		if err != nil {
+			exitWithErr(err)
+		}
 	},
 }
 
 type DocClient interface {
-	NewBasicDocumentWithContent(name, tags, content string) (*rspace.DocumentInfo, error)
+	NewBasicDocumentWithContent(name, tags, content string) (*rspace.Document, error)
+
+	NewDocumentWithContent(post *rspace.DocumentPost) (*rspace.Document, error)
 }
 
-func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) {
-	content := getContent(addDocArgV)
-	newDoc, err := docClient.NewBasicDocumentWithContent(addDocArgV.NameArg,
-		addDocArgV.Tags, content)
+func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) error {
+	var created *rspace.Document
+	var err error
+	// is basic document
+	createdDocs := make([]rspace.DocumentInfo, 0)
+	if len(addDocArgV.FormId) == 0 {
+		content := getContent(addDocArgV)
+		created, err = docClient.NewBasicDocumentWithContent(addDocArgV.NameArg,
+			addDocArgV.Tags, content)
+		createdDocs = append(createdDocs, *created.DocumentInfo)
+	} else {
+		// else is form, we add content if there is any
+		// TODO implement this, use CSV data as an example.
+		formId, err := idFromGlobalId(addDocArgV.FormId)
+		if err != nil {
+			return err
+		}
+		var toPost = rspace.DocumentPost{}
+		toPost.Name = addDocArgV.NameArg
+		toPost.Tags = addDocArgV.Tags
+		toPost.FormID = rspace.FormId{formId}
+		if len(addDocArgV.InputData) > 0 {
+			f, err := os.Open(addDocArgV.InputData)
+			if err != nil {
+				return err
+			}
+			csvIn, err := readCsvFile(f)
+			if err != nil {
+				return err
+			}
+			err = validateCsvInput(csvIn)
+			if err != nil {
+				return err
+			}
+
+			for i, v := range csvIn {
+				if i == 0 {
+					continue
+				}
+				messageStdErr(fmt.Sprintf("%d of %d", i, len(csvIn)-1))
+				var content []rspace.FieldContent = make([]rspace.FieldContent, 0)
+				for _, v2 := range v {
+					content = append(content, rspace.FieldContent{Content: v2})
+				}
+				toPost.Fields = content
+				doc, err := docClient.NewDocumentWithContent(&toPost)
+				if err != nil {
+					messageStdErr(fmt.Sprintf("Could not create document from data in row %d", i))
+					continue
+				}
+				createdDocs = append(createdDocs, *doc.DocumentInfo)
+
+			}
+		}
+	}
 
 	if err != nil {
-		exitWithErr(err)
+		return err
 	}
 	docList := rspace.DocumentList{}
-	docList.Documents = []rspace.DocumentInfo{*newDoc}
+	docList.Documents = createdDocs
 	var dlf = DocListFormatter{&docList}
 	context.writeResult(&dlf)
+	return nil
+}
+func validateCsvInput(csvIn [][]string) error {
+	if len(csvIn) <= 1 {
+		return errors.New(`There must be at least 2 lines in the csv file - 
+				1 for headers and at least 1 row of data`)
+	}
+	row1Len := len(csvIn[0])
+	for i, v := range csvIn {
+		if len(v) != row1Len {
+			return errors.New(fmt.Sprintf("Discrepancy in row length for row %d. Expected %d but was %d",
+				i, row1Len, len(v)))
+		}
+	}
+	return nil
+}
+func readCsvFile(csvIn io.Reader) ([][]string, error) {
+
+	csvReader := csv.NewReader(csvIn)
+	result, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func getContent(addDocArgV addDocArgs) string {
@@ -101,4 +189,9 @@ func init() {
 	addDocumentCmd.Flags().StringVar(&addDocArgV.Tags, "tags", "", "One or more tags, comma separated")
 	addDocumentCmd.Flags().StringVar(&addDocArgV.ContentFile, "file", "", "A file of text or HTML content to put in the document")
 	addDocumentCmd.Flags().StringVar(&addDocArgV.Content, "content", "", "Text or HTML content to put in the document")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.FormId, "formId", "", "Id for a form")
+	addDocumentCmd.Flags().StringVar(&addDocArgV.InputData, "input", "", "File of input data")
+
+	addDocumentCmd.Flags().StringVar(&addDocArgV.InputDataFormat, "inputFormat", "", "Type of input data")
+
 }

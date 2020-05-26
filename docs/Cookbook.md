@@ -101,9 +101,36 @@ a list of authors.
 
 Example output:
 
-```
+```t
 file      	Total Docs	minDate               	maxDate               	Authors                                           
 rs2.zip   	2         	2020-05-10T18:39:05Z  	2020-05-16T09:21:24Z  	user5e                                            
 rs3.zip   	3         	2020-05-02T11:32:09Z  	2020-05-17T20:01:58Z  	user5e 
 ```
+
+6. Creating partially filled content automatically for Structured (multi-field) documents
+
+### Scenario
+
+You are using RSpace Forms to capture structured data from PCR experiments. Some of the data records the PCR setup, and the source of this data can be obtained in a spreadsheet format. You'd like to pre-populate a set of documents with these setups
+
+### Solution
+
+1. First of all create an RSpace form to record the PCR experiment. This might be number of cycles (number), denaturing time (time in seconds), annealing time (time in seconds), extension time (time in seconds), 5prime oligo (string) , 3prime oligo (string), Notes (text) and Results (text). 
+Note the ID of the form -  let's say it's FM12345
+
+2. Create/export a set of PCR experiment setups in CSV format, e.g.
+
+cycles,denature,annealing,extension,5prime,3prime,Notes,Results
+35,300,45,120,atgctagcgctagc,atgcacgggcacac,,
+30,270,40,150,atcgagctagtc,catcgctacgtcg,,
+
+Note the last 2 columns are left blank - this is for manual description of the results which will be added in the web application later.
+
+3. Create a new notebook to hold these experiments and note the ID in the output I
+
+    rspace eln addNotebook --name myPcrExperiments 
+
+4. Now, in a single command, you can create the documents automatically with your experimental setup pre-populated:
+
+    rspace eln addDocument --formId FM12345 --name myPcrExperiment --input myPcrSetup.csv --folder NB12345
 

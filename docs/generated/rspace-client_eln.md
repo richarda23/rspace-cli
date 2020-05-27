@@ -28,7 +28,7 @@ rspace-client eln [flags]
 ### SEE ALSO
 
 * [rspace-client](rspace-client.md)	 - RSpace CLI
-* [rspace-client eln addDocument](rspace-client_eln_addDocument.md)	 - Creates a new basic document with optional tags and content
+* [rspace-client eln addDocument](rspace-client_eln_addDocument.md)	 - Creates a new Basic or Structured document with optional tags and content
 * [rspace-client eln addFolder](rspace-client_eln_addFolder.md)	 - Creates a new Folder
 * [rspace-client eln addGroup](rspace-client_eln_addGroup.md)	 - Adds a new LabGroup
 * [rspace-client eln addNotebook](rspace-client_eln_addNotebook.md)	 - Creates a new notebook

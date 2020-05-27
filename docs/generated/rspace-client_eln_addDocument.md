@@ -1,11 +1,11 @@
 ## rspace-client eln addDocument
 
-Creates a new basic document with optional tags and content
+Creates a new Basic or Structured document with optional tags and content
 
 ### Synopsis
 
 Create a new document, with an optional name and parent folder.
-If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
+If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in 'pre'
 tags to preserve formatting.
 
 You can also create an structured (multi-field) document by passing the 'formId'.

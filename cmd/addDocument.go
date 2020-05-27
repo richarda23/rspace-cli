@@ -44,9 +44,9 @@ var addDocArgV = addDocArgs{}
 // addDocumentCmd represents the createNotebook command
 var addDocumentCmd = &cobra.Command{
 	Use:   "addDocument",
-	Short: "Creates a new basic document with optional tags and content",
+	Short: "Creates a new Basic or Structured document with optional tags and content",
 	Long: `Create a new document, with an optional name and parent folder.
-If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in '<pre>'
+If a file is a file of HTML content, it is loaded verbatim, otherwise, plain text files are wrapped in 'pre'
 tags to preserve formatting.
 
 You can also create an structured (multi-field) document by passing the 'formId'.

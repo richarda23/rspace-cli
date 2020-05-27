@@ -97,6 +97,7 @@ func TestValidateCsvInput(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Should fail - mismatched rows")
 	}
+
 }
 func assertOKDoc(outWriter io.Reader, t *testing.T) {
 	outString, _ := ioutil.ReadAll(outWriter)

@@ -73,8 +73,6 @@ rspace eln addDocument --name myDoc --formId FM2
 // create a multi-field document with data in a CSV file:
 rspace eln addDocument --name myDoc --formId FM2 --input data.csv
 
-
-
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		context := initialiseContext()
@@ -94,7 +92,8 @@ type DocClient interface {
 func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) error {
 	var created *rspace.Document
 	var err error
-	// is basic document
+	// is basic document if no form is supplied,
+	// we make a basic document
 	createdDocs := make([]*rspace.DocumentInfo, 0)
 	if len(addDocArgV.FormId) == 0 {
 		content := getContent(addDocArgV)
@@ -102,6 +101,7 @@ func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) e
 			addDocArgV.Tags, content)
 		createdDocs = append(createdDocs, created.DocumentInfo)
 	} else {
+		// we make a sructured document
 		createdDocs, err = readDocContentFromFile(addDocArgV, docClient)
 	}
 
@@ -120,6 +120,7 @@ func doAddDocRun(addDocArgV addDocArgs, context *Context, docClient DocClient) e
 	return nil
 }
 
+// called when formId is not set.
 func readDocContentFromFile(addDocArgV addDocArgs, docClient DocClient) ([]*rspace.DocumentInfo, error) {
 	createdDocs := make([]*rspace.DocumentInfo, 0)
 
@@ -146,35 +147,42 @@ func readDocContentFromFile(addDocArgV addDocArgs, docClient DocClient) ([]*rspa
 		if err != nil {
 			return nil, err
 		}
-
+		// iterate of each row in file
 		for i, v := range csvIn {
+			// ignore 1st line - header
 			if i == 0 {
 				continue
 			}
 			messageStdErr(fmt.Sprintf("%d of %d", i, len(csvIn)-1))
 			var content []rspace.FieldContent = make([]rspace.FieldContent, 0)
+			// convert each column into a field
 			for _, v2 := range v {
 				content = append(content, rspace.FieldContent{Content: v2})
 			}
 			toPost.Fields = content
+			// add suffix to name if > 1 document being created
+			if i > 1 {
+				toPost.Name = fmt.Sprintf("%s-%d", toPost.Name, i)
+			}
 			doc, err := docClient.NewDocumentWithContent(&toPost)
 			if err != nil {
 				messageStdErr(fmt.Sprintf("Could not create document from data in row %d", i))
 				continue
 			}
 			createdDocs = append(createdDocs, doc.DocumentInfo)
-
 		}
 	}
 	return createdDocs, nil
 }
 
+// validates that csv input is suitable for creating documents from
 func validateCsvInput(csvIn [][]string) error {
 	if len(csvIn) <= 1 {
 		return errors.New(`There must be at least 2 lines in the csv file - 
 				1 for headers and at least 1 row of data`)
 	}
 	row1Len := len(csvIn[0])
+	// all should have same number of columns
 	for i, v := range csvIn {
 		if len(v) != row1Len {
 			return errors.New(fmt.Sprintf("Discrepancy in row length for row %d. Expected %d but was %d",
@@ -183,6 +191,8 @@ func validateCsvInput(csvIn [][]string) error {
 	}
 	return nil
 }
+
+// reads csv input from a source
 func readCsvFile(csvIn io.Reader) ([][]string, error) {
 
 	csvReader := csv.NewReader(csvIn)

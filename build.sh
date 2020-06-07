@@ -5,6 +5,8 @@
 # Requires single argument, a version numbepr
 # 2nd argument can be 'b' (build only, default); 'p' (publish only) or 'bp' (build and publish)
 # 
+# The Version number is set into cmd/version.go
+# 
 # Publishing pushes to bintray creating a new version; will fail if this version already exists
 # The files uploaded need manual publishing on bintray website
 # 

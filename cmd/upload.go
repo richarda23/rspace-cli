@@ -32,6 +32,7 @@ type uploadCmdArgs struct {
 	GenerateSummaryDoc bool
 	DryrunFlag         bool
 	LogfileArg         string
+	Caption            string
 }
 
 func setupInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
@@ -80,7 +81,7 @@ Use the --recursive flag to upload all folder tree contents.
 
 Any folder structure in the input is flattened in RSpace. Files are uploaded to the target folder.
 
-If explicit folder is not set, files will be uploaded to the appropriate 'Api Inbox' Gallery folders,
+If an explicit folder is not set, files will be uploaded to the appropriate 'Api Inbox' Gallery folders,
 depending on the file type. 
 
 Files or folder names starting with '.' are ignored. But you can use '.' as an argument
@@ -104,8 +105,9 @@ rspace eln upload file.doc imageFolder --recursive --dry-run
 //use a logfile to record what was uploaded, in the event of cancellation or error
 rspace eln upload folderWithManyFiles --recursive --logfile progress.txt
 
-	// upload a file and a folder, recursively, and generate a summary document
-	rspace eln upload file.doc imageFolder --recursive --add-summary
+// upload a file and a folder, recursively, and generate a summary document
+// A caption will be added to all uploaded files - useful for tagging collections of files.
+rspace eln upload file.doc imageFolder --recursive --add-summary --caption anti-CDC2-immunofluorescence
 	`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -188,7 +190,10 @@ func postFile(ctx *Context, fileInfo *scannedFileInfo) *rspace.FileInfo {
 		return &rspace.FileInfo{}
 	}
 	messageStdErr("Uploading: " + filePath)
-	file, err := ctx.WebClient.UploadFile(filePath)
+	cfg := rspace.FileUploadConfig{}
+	cfg.Caption = uploadArgsArg.Caption
+	cfg.FilePath = filePath
+	file, err := ctx.WebClient.UploadFile(cfg)
 	if err != nil {
 		// other files might upload OK, so don't exit here
 		messageStdErr(err.Error())
@@ -201,6 +206,7 @@ func init() {
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.RecursiveFlag, "recursive", false, "If uploading a folder, uploads contents recursively.")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.DryrunFlag, "dry-run", false, "Performs a dry-run, reports on what would be uploaded")
 	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.LogfileArg, "logfile", "", "A log file to record upload progress, if not set will log to standard error")
+	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.Caption, "caption", "", "A caption to be added to all uploaded files")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.GenerateSummaryDoc,
 		"add-summary", false, "Generate a summary document containing links to uploaded files")
 }

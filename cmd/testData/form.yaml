@@ -1,0 +1,36 @@
+---
+name: "MyForm- Ɣ"
+tags: "optionalTag1, optionalTag2"
+fields:
+- name: A String Field
+  type: String
+  defaultValue: "An optional default value, can have  ' or ? wweird chars"
+- name: text FormField Example
+  type: Text
+  defaultValue: Some placeholder text,can be simple <em>HTML</em>
+- name: Number FormField Example
+  type: Number
+  defaultValue: 23
+  min: 0
+- name: Choice FormField Example
+  type: Choice
+  multipleChoice: true
+  options:
+  - antibody1
+  - antibody2
+  - antibody3
+  defaultOptions:
+  - antibody2
+  - antibody3
+- name: Radio FormField Example
+  type: Radio
+  options:
+  - antibody1
+  - antibody2
+  - antibody3
+  defaultOption: antibody2
+- name: date FormField Example
+  type: Date
+  defaultValue: '2018-03-21'
+  min: '2018-02-21'
+  max: '2018-04-21'

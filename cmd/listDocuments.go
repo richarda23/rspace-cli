@@ -89,7 +89,7 @@ func (ds *DocListFormatter) ToTable() *TableResult {
 	rows := make([][]string, 0)
 	for _, res := range results.Documents {
 
-		data := []string{res.GlobalId, res.GetName(), res.FormInfo.GlobalId,
+		data := []string{res.GlobalId, res.GetName(), res.Form.GlobalId,
 			res.Created[0:DISPLAY_TIMESTAMP_WIDTH], res.LastModified[0:DISPLAY_TIMESTAMP_WIDTH], res.UserInfo.Username} // ignore seconds/millis to save space
 		rows = append(rows, data)
 	}

@@ -66,7 +66,7 @@ func initConfig() {
 		if err != nil {
 			exitWithErr(err)
 		}
-		// Search config in home directory with name ".rspace-client" (without extension).
+		// Search for config in home directory  ".rspace" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".rspace")
 		viper.SetConfigType("env")

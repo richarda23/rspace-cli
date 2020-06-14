@@ -69,18 +69,18 @@ func (ds *FormListFormatter) ToTable() *TableResult {
 	results := ds.FormList.Forms
 
 	headers := []columnDef{columnDef{"Id", 8}, columnDef{"GlobalId", 10}, columnDef{"Name", 25},
-		columnDef{"StableId", 25}}
+		columnDef{"StableId", 25}, columnDef{"PublishingState", 15}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
 		data := []string{strconv.Itoa(res.Id), res.GlobalId, res.Name,
-			res.StableId}
+			res.StableId, res.FormState}
 		rows = append(rows, data)
 	}
 	return &TableResult{headers, rows}
 
 }
-func toIdentifiableForm(results []*rspace.FormInfo) []identifiable {
+func toIdentifiableForm(results []*rspace.Form) []identifiable {
 	rows := make([]identifiable, 0)
 
 	for _, res := range results {

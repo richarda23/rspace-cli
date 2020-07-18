@@ -18,10 +18,11 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
-	"text/template"
 
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
@@ -33,6 +34,7 @@ type uploadCmdArgs struct {
 	DryrunFlag         bool
 	LogfileArg         string
 	Caption            string
+	TemplateFile       string
 }
 
 func setupInterrupt(ctx *Context, toUpload *[]*scannedFileInfo) chan bool {
@@ -149,7 +151,8 @@ func report(ctx *Context, uploaded []*rspace.FileInfo) {
 }
 
 func addSummaryDoc(ctx *Context, uploaded []*rspace.FileInfo) {
-	contentStr := generateSummaryContent(uploaded)
+	contentStr, _ := generateSummaryContent(uploaded)
+	messageStdErr(contentStr)
 	summaryDocInfo, err := ctx.WebClient.NewBasicDocumentWithContent("fileupload-summary", "", contentStr)
 	if err != nil {
 		messageStdErr(err.Error())
@@ -158,21 +161,54 @@ func addSummaryDoc(ctx *Context, uploaded []*rspace.FileInfo) {
 	}
 }
 
+type FileInfoSummary struct {
+	*rspace.FileInfo
+}
+
+func (summary *FileInfoSummary) FileIdLink() template.HTML {
+	return template.HTML(fmt.Sprintf("<fileId=%d>", summary.Id))
+}
+
+func (summary *FileInfoSummary) GlobalIdLink() template.HTML {
+	return template.HTML(fmt.Sprintf(`<a href="/globalId/%s">`, summary.GlobalId))
+}
+
 // populates an HTML  table template with links to uploaded files
-func generateSummaryContent(results []*rspace.FileInfo) string {
+func generateSummaryContent(results2 []*rspace.FileInfo) (string, error) {
+
+	results := make([]*FileInfoSummary, 0)
+	for _, v := range results2 {
+		f := v
+		results = append(results, &FileInfoSummary{f})
+	}
 	const tmpl = `
 	<table>
 	 <tr> <th>Name</th><th>Id</th><th>Link</th></tr>
 		{{range $val := .}}
-		 <tr><td>{{$val.Name}}</td><td><a href="/globalId/{{$val.GlobalId}}">{{$val.GlobalId}}</a></td><td><fileId={{$val.Id}}></td></tr>
+		 <tr>
+		 <td>{{$val.Name}}</td>
+		 <td>{{$val.GlobalIdLink}}{{$val.GlobalId}}</a></td>
+		 <td>
+		 {{$val.FileIdLink}}
+		 </td>
+		 </tr>
 		{{end}}
 	</table>
 	`
-	t := template.Must(template.New("tmpl").Parse(tmpl))
-	var buf bytes.Buffer
+	var templToUse string = tmpl
 
+	if len(uploadArgsArg.TemplateFile) > 0 {
+		bytes, err := ioutil.ReadFile(uploadArgsArg.TemplateFile)
+		if err != nil {
+			messageStdErr(err.Error())
+			return "", err
+		}
+		templToUse = string(bytes)
+	}
+	t := template.Must(template.New("tmpl").Parse(templToUse))
+	var buf bytes.Buffer
 	t.Execute(&buf, results)
-	return buf.String()
+	return buf.String(), nil
 }
 
 func fileListToBaseInfoList(results []*rspace.FileInfo) []rspace.BasicInfo {
@@ -209,4 +245,6 @@ func init() {
 	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.Caption, "caption", "", "A caption to be added to all uploaded files")
 	uploadCmd.PersistentFlags().BoolVar(&uploadArgsArg.GenerateSummaryDoc,
 		"add-summary", false, "Generate a summary document containing links to uploaded files")
+	uploadCmd.PersistentFlags().StringVar(&uploadArgsArg.TemplateFile, "summary-template", "", "Template for summary document")
+
 }

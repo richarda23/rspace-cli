@@ -39,7 +39,7 @@ var addFormCmd = &cobra.Command{
 	Short: "Adds a new Form",
 	Long: `
 Create 1 or forms from .yaml or .json definition files.
-The synatx for the form definitions should be that described in the forms/
+The syntax for the form definitions should be that described in the forms/
 POST API documentation, or its YAML equivalent.
 
 Multiple files can be specified as arguments.
@@ -116,5 +116,4 @@ func init() {
 	elnCmd.AddCommand(addFormCmd)
 	addFormCmd.Flags().BoolVar(&formArgs.Publish, "publish", false,
 		"Publishes the forms")
-
 }

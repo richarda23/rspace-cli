@@ -20,6 +20,12 @@ to upload the current folder
 The --add-summary flag creates a document in your Home Folder with links to all 
 the uploaded files, as a reference to the uploaded files.
 
+If you want to supply your own summary template file, you can supply your own
+template in Go template format, as an argument to the --add-summary-template flag
+
+An example is in [testData/testTemplate.txt](testData/testTemplate.txt).
+
+
 If you are uploading many files, and cancel the operation while it is still running by a Ctrl-C
 or other interrupt signal, the files *not* uploaded will be listed in stderr or in a file
 specified by the --logfile argument.

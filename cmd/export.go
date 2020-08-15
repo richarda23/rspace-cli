@@ -54,7 +54,8 @@ func exportArgs(ctx *Context, args []string) {
 		exitWithErr(err)
 	}
 	if result.IsCompleted() {
-		messageStdErr(fmt.Sprintf("Completed - download link is %s", result.DownloadLink()))
+		ctx.write(fmt.Sprintf("Completed - download link is %s (%s)",
+			result.DownloadLink(), humanizeBytes(uint64(result.Result.Size))))
 	}
 
 }

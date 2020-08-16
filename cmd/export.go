@@ -52,6 +52,7 @@ func exportArgs(ctx *Context, args []string) {
 	format := getExportFormat(exportCmdArgsArg.Format)
 	id := exportCmdArgsArg.Id
 	post := rspace.ExportPost{format, scope, id}
+	messageStdErr("Waiting for export to start...")
 	if exportCmdArgsArg.WaitFor {
 
 		result, err := ctx.WebClient.Export(post, true)
@@ -59,8 +60,7 @@ func exportArgs(ctx *Context, args []string) {
 			exitWithErr(err)
 		}
 		if result.IsCompleted() {
-			ctx.write(fmt.Sprintf("Job ID %d Completed - download link is %s (%s)",
-				result.Id, result.DownloadLink(), humanizeBytes(uint64(result.Result.Size))))
+			ctx.writeResult(&JobFormatter{result})
 		}
 	} else {
 		result, err := ctx.WebClient.Export(post, false)
@@ -68,9 +68,7 @@ func exportArgs(ctx *Context, args []string) {
 			exitWithErr(err)
 		}
 		ctx.writeResult(&JobFormatter{result})
-
 	}
-
 }
 
 type JobFormatter struct {
@@ -84,13 +82,17 @@ func (fs *JobFormatter) ToQuiet() []identifiable {
 }
 
 func (fs *JobFormatter) ToTable() *TableResult {
-	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Status", 25},
-		columnDef{"Percent Complete", 10}}
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Status", 10},
+		columnDef{"Percent Complete", 18}, columnDef{"Download size", 14}}
 
 	rows := make([][]string, 0)
+	var sizeStr = "unknown"
+	if fs.Job.IsCompleted() {
+		sizeStr = humanizeBytes(uint64(fs.Job.Result.Size))
+	}
 
 	data := []string{strconv.Itoa(fs.Job.Id), fs.Job.Status,
-		fmt.Sprintf("%3.2f", fs.Job.PercentComplete)}
+		fmt.Sprintf("%3.2f", fs.Job.PercentComplete), sizeStr}
 	rows = append(rows, data)
 	return &TableResult{headers, rows}
 }
@@ -130,5 +132,4 @@ func init() {
 		"id", 0, "User or group id to export")
 	exportCmd.PersistentFlags().BoolVar(&exportCmdArgsArg.WaitFor,
 		"waitFor", false, "Wait for export to complete")
-
 }

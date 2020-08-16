@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
@@ -27,6 +28,8 @@ type exportCmdArgs struct {
 	Format string
 	// user or group id
 	Id int
+	// block for export to complete
+	WaitFor bool
 }
 
 var exportCmdArgsArg exportCmdArgs
@@ -49,15 +52,50 @@ func exportArgs(ctx *Context, args []string) {
 	format := getExportFormat(exportCmdArgsArg.Format)
 	id := exportCmdArgsArg.Id
 	post := rspace.ExportPost{format, scope, id}
-	result, err := ctx.WebClient.Export(post)
-	if err != nil {
-		exitWithErr(err)
-	}
-	if result.IsCompleted() {
-		ctx.write(fmt.Sprintf("Completed - download link is %s (%s)",
-			result.DownloadLink(), humanizeBytes(uint64(result.Result.Size))))
+	if exportCmdArgsArg.WaitFor {
+
+		result, err := ctx.WebClient.Export(post, true)
+		if err != nil {
+			exitWithErr(err)
+		}
+		if result.IsCompleted() {
+			ctx.write(fmt.Sprintf("Job ID %d Completed - download link is %s (%s)",
+				result.Id, result.DownloadLink(), humanizeBytes(uint64(result.Result.Size))))
+		}
+	} else {
+		result, err := ctx.WebClient.Export(post, false)
+		if err != nil {
+			exitWithErr(err)
+		}
+		ctx.writeResult(&JobFormatter{result})
+
 	}
 
+}
+
+type JobFormatter struct {
+	*rspace.Job
+}
+
+func (fs *JobFormatter) ToQuiet() []identifiable {
+	rows := make([]identifiable, 0)
+	rows = append(rows, identifiable{strconv.Itoa(fs.Job.Id)})
+	return rows
+}
+
+func (fs *JobFormatter) ToTable() *TableResult {
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Status", 25},
+		columnDef{"Percent Complete", 10}}
+
+	rows := make([][]string, 0)
+
+	data := []string{strconv.Itoa(fs.Job.Id), fs.Job.Status,
+		fmt.Sprintf("%3.2f", fs.Job.PercentComplete)}
+	rows = append(rows, data)
+	return &TableResult{headers, rows}
+}
+func (fs *JobFormatter) ToJson() string {
+	return prettyMarshal(fs.Job)
 }
 
 func getExportFormat(format string) rspace.ExportFormat {
@@ -90,5 +128,7 @@ func init() {
 		"format", "html", "xml or html")
 	exportCmd.PersistentFlags().IntVar(&exportCmdArgsArg.Id,
 		"id", 0, "User or group id to export")
+	exportCmd.PersistentFlags().BoolVar(&exportCmdArgsArg.WaitFor,
+		"waitFor", false, "Wait for export to complete")
 
 }

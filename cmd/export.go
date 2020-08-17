@@ -38,8 +38,25 @@ var exportCmdArgsArg exportCmdArgs
 var exportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "Exports RSpace documents to XML or HTML archive",
-	Long: ` Import Word files as RSpace document. Add files and folders to the command line. 
-	`,
+	Long: `
+Make an export of your work to zipped archive in  HTML (default) or XML format. If you are a PI or admin
+user you can export other users' work or a group's work. 
+
+You can opt to wait for the export to complete using --waitFor. This will cause the command to 
+block until the export process has completed.
+
+Launching an export returns a job Id that you can use to download the results using 'job' command.
+`,
+	Example: `
+// export your own work to HTML, waiting for the archive process to complete
+rspace eln export --format html --scope user --waitFor
+
+// submit an export but don't wait for completion
+rspace eln export --format xml --scope user
+
+// export your group's work (you need to be a PI or labAdmin to do this)
+rspace eln export --id 12345 --format xml --scope group
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// initial wait for job might take some time
 		ctx := initialiseContextWithTimeout(1200)

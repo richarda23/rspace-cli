@@ -39,7 +39,8 @@ var jobCmdArgsArg jobCmdArgs
 var jobCmd = &cobra.Command{
 	Use:   "job",
 	Short: "Query progress of a Job",
-	Long: ` Query a job status, or download result. 
+	Long: ` Query a job status, or download result. You get a jobId after submitting an export
+	 request using the 'export' command.
 	`,
 	Example: `
 // get progress of job in tabular format

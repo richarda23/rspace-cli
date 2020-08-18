@@ -172,3 +172,14 @@ func getMaxNameLength(results []rspace.BasicInfo) int {
 	}
 	return int(currLongest)
 }
+
+func stringListToIntList(slice []string) []int {
+	results := make([]int, 0)
+	for _, v := range slice {
+		s, _ := strconv.Atoi(v)
+		if s != 0 {
+			results = append(results, s)
+		}
+	}
+	return results
+}

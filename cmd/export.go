@@ -29,7 +29,8 @@ type exportCmdArgs struct {
 	// user or group id
 	Id int
 	// block for export to complete
-	WaitFor bool
+	WaitFor      bool
+	MaxLinkLevel int
 }
 
 var exportCmdArgsArg exportCmdArgs
@@ -68,7 +69,11 @@ func exportArgs(ctx *Context, args []string) {
 	scope := getExportScope(exportCmdArgsArg.Scope)
 	format := getExportFormat(exportCmdArgsArg.Format)
 	id := exportCmdArgsArg.Id
-	post := rspace.ExportPost{format, scope, id}
+	var itemIds []int
+	if len(args) > 0 {
+		itemIds = stringListToIntList(args)
+	}
+	post := rspace.ExportPost{format, scope, id, itemIds, exportCmdArgsArg.MaxLinkLevel}
 	messageStdErr("Waiting for export to start...")
 	if exportCmdArgsArg.WaitFor {
 
@@ -134,6 +139,8 @@ func getExportScope(arg string) rspace.ExportScope {
 		return rspace.USER_EXPORT_SCOPE
 	case "group":
 		return rspace.GROUP_EXPORT_SCOPE
+	case "selection":
+		return rspace.SELECTION_EXPORT_SCOPE
 	}
 	exitWithStdErrMsg("export scope must be 'user' or 'group'")
 	return 0
@@ -149,4 +156,6 @@ func init() {
 		"id", 0, "User or group id to export")
 	exportCmd.PersistentFlags().BoolVar(&exportCmdArgsArg.WaitFor,
 		"waitFor", false, "Wait for export to complete")
+	exportCmd.PersistentFlags().IntVar(&exportCmdArgsArg.MaxLinkLevel,
+		"linkDepth", 1, "Maximum number of links to follow to include in export")
 }

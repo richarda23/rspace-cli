@@ -195,7 +195,7 @@ You can download using the `job` command. Don't forget the `--download` flag, el
 just show the job status.
 
 ```
-rspace eln job 22 --download 
+rspace eln job 91 --download 
 ```
 
 If you really want to export and download in one go, you can use `xargs` again.
@@ -206,4 +206,4 @@ rspace eln  export 123 --scope user  --wait -f quiet | \
    xargs -I jobId  rspace eln  job  jobId  --download
 ```
 
-This latter command could be used as an input to  `cron`.
+This latter command could be used as an input to  `cron`. What you do from here is up to you - send to a long-term archive or repository, send to collaborators etc.

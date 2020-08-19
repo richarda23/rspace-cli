@@ -26,10 +26,8 @@ import (
 type exportCmdArgs struct {
 	Scope  string
 	Format string
-	// user or group id
-	Id int
 	// block for export to complete
-	WaitFor      bool
+	Wait         bool
 	MaxLinkLevel int
 }
 
@@ -41,22 +39,31 @@ var exportCmd = &cobra.Command{
 	Short: "Exports RSpace documents to XML or HTML archive",
 	Long: `
 Make an export of your work to zipped archive in  HTML (default) or XML format. If you are a PI or admin
-user you can export other users' work or a group's work. 
+user you can export other users' work or a group's work by supplying a group or user ID as a 
+single argument.
 
-You can opt to wait for the export to complete using --waitFor. This will cause the command to 
+Exports of selections are exported as well, by supplying IDs as command line arguments
+
+You can opt to wait for the export to complete using --wait. This will cause the command to 
 block until the export process has completed.
 
 Launching an export returns a job Id that you can use to download the results using 'job' command.
 `,
 	Example: `
 // export your own work to HTML, waiting for the archive process to complete
-rspace eln export --format html --scope user --waitFor
+rspace eln export --format html --scope user --wait
 
 // submit an export but don't wait for completion
 rspace eln export --format xml --scope user
 
 // export your group's work (you need to be a PI or labAdmin to do this)
-rspace eln export --id 12345 --format xml --scope group
+rspace eln export  12345 --format xml --scope group
+
+// export a selection of records, notebooks or folders (3 in this case)
+rspace eln export 123 456 789 --format html --scope selection
+
+// export - don't include linked documents:
+rspace eln export 123 456 --linkDepth 0
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// initial wait for job might take some time
@@ -68,14 +75,26 @@ rspace eln export --id 12345 --format xml --scope group
 func exportArgs(ctx *Context, args []string) {
 	scope := getExportScope(exportCmdArgsArg.Scope)
 	format := getExportFormat(exportCmdArgsArg.Format)
-	id := exportCmdArgsArg.Id
 	var itemIds []int
+	var userOrGroupId int
 	if len(args) > 0 {
-		itemIds = stringListToIntList(args)
+		if scope == rspace.SELECTION_EXPORT_SCOPE {
+			itemIds = stringListToIntList(args)
+		} else {
+			if len(args) > 1 {
+				exitWithStdErrMsg("Only a single user or group id is supported")
+			}
+			var err error
+			userOrGroupId, err = strconv.Atoi(args[0])
+			if err != nil {
+				exitWithErr(err)
+			}
+		}
 	}
-	post := rspace.ExportPost{format, scope, id, itemIds, exportCmdArgsArg.MaxLinkLevel}
+	post := rspace.ExportPost{format, scope, userOrGroupId, itemIds, exportCmdArgsArg.MaxLinkLevel}
+	fmt.Println(post)
 	messageStdErr("Waiting for export to start...")
-	if exportCmdArgsArg.WaitFor {
+	if exportCmdArgsArg.Wait {
 
 		result, err := ctx.WebClient.Export(post, true)
 		if err != nil {
@@ -152,10 +171,8 @@ func init() {
 		"scope", "user", "user or group")
 	exportCmd.PersistentFlags().StringVar(&exportCmdArgsArg.Format,
 		"format", "html", "xml or html")
-	exportCmd.PersistentFlags().IntVar(&exportCmdArgsArg.Id,
-		"id", 0, "User or group id to export")
-	exportCmd.PersistentFlags().BoolVar(&exportCmdArgsArg.WaitFor,
-		"waitFor", false, "Wait for export to complete")
+	exportCmd.PersistentFlags().BoolVar(&exportCmdArgsArg.Wait,
+		"wait", false, "Wait for export to complete")
 	exportCmd.PersistentFlags().IntVar(&exportCmdArgsArg.MaxLinkLevel,
 		"linkDepth", 1, "Maximum number of links to follow to include in export")
 }

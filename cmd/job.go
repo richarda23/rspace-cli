@@ -19,14 +19,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
 )
 
 type jobCmdArgs struct {
-	// job id
-	Id int
 	// Download if complete
 	Download bool
 	// optional download path
@@ -44,17 +43,18 @@ var jobCmd = &cobra.Command{
 	`,
 	Example: `
 // get progress of job in tabular format
-rspace eln job --id 22
+rspace eln job  22
 
 // get raw JSON
-rspace eln job --id 22 -f json
+rspace eln job 22 -f json
 
 // download (if complete) to a file of your choice
-rspace eln job --id 22 --download --outfile /home/me/myexport.zip
+rspace eln job  22 --download --outfile /home/me/myexport.zip
 
 // download (if complete) to current directory
-rspace eln job --id 22 --download
+rspace eln job  22 --download
 	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// initial wait for job might take some time
 		ctx := initialiseContext()
@@ -63,9 +63,9 @@ rspace eln job --id 22 --download
 }
 
 func doJob(ctx *Context, args []string) {
-	id := jobCmdArgsArg.Id
-	if id <= 0 {
-		exitWithStdErrMsg("Invalid job ID, must be > 0")
+	id, e := strconv.Atoi(args[0])
+	if e != nil || id <= 0 {
+		exitWithStdErrMsg("Invalid job ID, must be an integer > 0, but was " + args[0])
 	}
 	download := jobCmdArgsArg.Download
 	result, err := ctx.WebClient.GetJob(id)
@@ -100,8 +100,6 @@ func getOutfile(job *rspace.Job) string {
 }
 func init() {
 	elnCmd.AddCommand(jobCmd)
-	jobCmd.PersistentFlags().IntVar(&jobCmdArgsArg.Id,
-		"id", 0, "Job id")
 	jobCmd.PersistentFlags().BoolVar(&jobCmdArgsArg.Download,
 		"download", false, "Download result, if complete")
 	jobCmd.PersistentFlags().StringVar(&jobCmdArgsArg.DownloadPath,

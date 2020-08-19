@@ -87,12 +87,12 @@ If you're not quite sure what you'll end up importing, you can use the `--dry-ru
 
 ### Scenario 
 
-You have been making regular exports of your RSpace documents and have accumulated many .zip files over time, some of them quite big. You'd like to know what's inside withoout having to 
+You have been making regular XML exports of your RSpace documents and have accumulated many .zip files over time, some of them quite big. You'd like to know what's inside withoout having to 
 unzip or import back into RSpace
 
 ### Solution
 
-The `archive` command is different from other commands in this softawre as it doesn't make calls to an RSpace server - it works with files on your device. 
+The `archive` command is different from other commands in this software as it doesn't make calls to an RSpace server - it works with files on your device. 
 
     rspace archive myArchive1.zip myArchive2.zip --summary
 
@@ -101,11 +101,16 @@ a list of authors.
 
 Example output:
 
-```t
+```
 file      	Total Docs	minDate               	maxDate               	Authors                                           
 rs2.zip   	2         	2020-05-10T18:39:05Z  	2020-05-16T09:21:24Z  	user5e                                            
-rs3.zip   	3         	2020-05-02T11:32:09Z  	2020-05-17T20:01:58Z  	user5e 
+rs3.zip   	3         	2020-05-02T11:32:09Z  	2020-05-17T20:01:58Z  	user5e;bobsmith
 ```
+
+If you want to find out more information about a single archive, you can use the extended summary flag `--xsummary`; this will list the names of documents in the archive
+
+```
+    rspace archive myArchive1.zip myArchive2.zip --xsummary
 
 ## 6. Creating partially filled content automatically for Structured (multi-field) documents
 
@@ -143,3 +148,61 @@ rspace eln addNotebook --name myPcrExperiments
 ```
 rspace eln addDocument --formId FM12345 --name myPcrExperiment --input myPcrSetup.csv --folder NB678
 ```
+ 
+## 7. Exporting to XML  and HTML
+
+### Scenario
+
+You'd like to make regular exports of a folder, or a set of search results.
+You could do this in the web application, but you'd have to remember to do the export,
+wait for it to complete and download somewhere. 
+
+### Solution
+
+The `export` command is what you need here. You can export a selection, all your work or all
+your group's work. Here we'll focus on exporting a selection.
+
+If you have a folder or a notebook, with lots of content inside, then you can just export the folder - all child content will be included in the export. You can get the ID from Workspace listing or from the 'GetInfo' page. Let's suppose you have a folder FL12345. You can use the 'global id' (FL12345) or just the numeric ID (12345), whatever is more convenient.
+
+The `--wait` option blocks till the export is complete.
+
+```
+rspace eln export 12345 --scope selection --format html --wait
+```
+
+If you have a more complex selection - say a bunch of documents that share a common tag, you 
+can combine export with search. E.g.
+
+```
+rspace eln listDocuments --tag grantNumber1234 --maxResults 100  -f quiet | \
+   xargs rspace eln export --scope selection --format html --wait
+```
+
+Here we do a search with the 'quiet' flag set which just outputs the IDs of hits.
+Using `xargs` we can pipe these IDs into our export command. 
+
+Once export is completed, you get a job ID which you can use to download the results.
+
+The CLI doesn't automatically download the output zip file as it might be really huge. The output of `export` tells you the size:
+
+```
+Id      	Status    	Percent Complete  	Download size 
+91      	COMPLETED 	100.00            	949 MB 
+```
+
+You can download using the `job` command. Don't forget the `--download` flag, else it will
+just show the job status.
+
+```
+rspace eln job 22 --download 
+```
+
+If you really want to export and download in one go, you can use `xargs` again.
+Here we export, wait, and download a whole  user's work  in a single line.
+
+```
+rspace eln  export 123 --scope user  --wait -f quiet | \
+   xargs -I jobId  rspace eln  job  jobId  --download
+```
+
+This latter command could be used as an input to  `cron`.

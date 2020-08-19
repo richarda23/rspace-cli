@@ -60,9 +60,9 @@ rspace eln export --format xml --scope user
 rspace eln export  12345 --format xml --scope group
 
 // export a selection of records, notebooks or folders (3 in this case)
-rspace eln export 123 456 789 --format html --scope selection
+rspace eln export SD123 NB456 FL789 --format html --scope selection
 
-// export - don't include linked documents:
+// export - don't include linked documents. You can use numeric IDs if you prefer.
 rspace eln export 123 456 --linkDepth 0
 `,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -79,7 +79,7 @@ func exportArgs(ctx *Context, args []string) {
 	var userOrGroupId int
 	if len(args) > 0 {
 		if scope == rspace.SELECTION_EXPORT_SCOPE {
-			itemIds = stringListToIntList(args)
+			itemIds = globalIdListToIntList(args)
 		} else {
 			if len(args) > 1 {
 				exitWithStdErrMsg("Only a single user or group id is supported")
@@ -92,7 +92,6 @@ func exportArgs(ctx *Context, args []string) {
 		}
 	}
 	post := rspace.ExportPost{format, scope, userOrGroupId, itemIds, exportCmdArgsArg.MaxLinkLevel}
-	fmt.Println(post)
 	messageStdErr("Waiting for export to start...")
 	if exportCmdArgsArg.Wait {
 

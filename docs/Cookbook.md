@@ -111,6 +111,7 @@ If you want to find out more information about a single archive, you can use the
 
 ```
     rspace archive myArchive1.zip myArchive2.zip --xsummary
+```
 
 ## 6. Creating partially filled content automatically for Structured (multi-field) documents
 

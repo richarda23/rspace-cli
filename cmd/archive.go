@@ -86,8 +86,8 @@ func (ds *xSummaryFormatter) ToQuiet() []identifiable {
 }
 
 func (ds *xSummaryFormatter) ToTable() *TableResult {
-	headers := []columnDef{columnDef{"Name", 10}, columnDef{"Tags", 15},
-		columnDef{"created", 22}, columnDef{"lastModified", 22}, columnDef{"Owner", 20}}
+	headers := []columnDef{columnDef{"Name", 25}, columnDef{"Tags", 15},
+		columnDef{"created", 22}, columnDef{"lastModified", 22}, columnDef{"Owner", 12}}
 
 	rows := make([][]string, 0)
 	for _, res := range ds.xSummaries.XSummaryList {

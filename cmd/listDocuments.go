@@ -57,7 +57,7 @@ rspace eln listDocuments --form FM12345
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		context := initialiseContext()
+		context := initialiseContextWithTimeout(30)
 		cfg := configurePagination()
 		doListDocs(context, cfg)
 	},

@@ -1,0 +1,7 @@
+<h3> Uploaded files </h3>
+<table>
+	 <tr> <th>Name</th><th>Id</th><th>Link</th></tr>
+		{{range $val := .}}
+		 <tr><td>{{$val.Name}}</td><td>{{$val.GlobalIdLink}}{{$val.GlobalId}}</a></td><td>{{$val.FileIdLink}}</td></tr>
+		{{end}}
+	</table>

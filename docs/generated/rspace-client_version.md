@@ -1,25 +1,19 @@
-## rspace-client status
+## rspace-client version
 
-Checks status of RSpace
+Print the version number of RSpace CLI
 
 ### Synopsis
 
-Gets version and current status of RSpace
+All software has versions. This is RSpace's
 
 ```
-rspace-client status [flags]
-```
-
-### Examples
-
-```
-rspace status
+rspace-client version [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for status
+  -h, --help   help for version
 ```
 
 ### Options inherited from parent commands

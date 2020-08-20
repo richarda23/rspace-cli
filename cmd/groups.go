@@ -67,7 +67,6 @@ func (ds *GroupListFormatter) ToQuiet() []identifiable {
 
 func (ds *GroupListFormatter) ToTable() *TableResult {
 	results := ds.GroupList.Groups
-
 	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Name", 25},
 		columnDef{"Type", 10}, columnDef{"SharedFolderId", 14}, columnDef{"Members", 20}}
 
@@ -83,7 +82,6 @@ func (ds *GroupListFormatter) ToTable() *TableResult {
 		rows = append(rows, data)
 	}
 	return &TableResult{headers, rows}
-
 }
 func init() {
 	elnCmd.AddCommand(listGroupsCmd)

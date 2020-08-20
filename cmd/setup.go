@@ -72,14 +72,18 @@ func (ctx *Context) write(toWrite string) {
 }
 
 // main initialisation method. Creates an RsWebClient, output writer and format
-func initialiseContext() *Context {
+func initialiseContextWithTimeout(clientTimeoutSecs int) *Context {
 	_validateFlagArgs()
 	outputFormat = outputFmt(outputFormatArg)
 	rc := Context{}
-	rc.WebClient = initWebClient()
+	rc.WebClient = initWebClient(clientTimeoutSecs)
 	rc.Writer = initOutputWriter(outFileArg)
 	rc.Format = outputFormat
 	return &rc
+}
+
+func initialiseContext() *Context {
+	return initialiseContextWithTimeout(15)
 }
 
 // exits with error if validation fails
@@ -153,7 +157,7 @@ func initOutputWriter(outfile string) io.Writer {
 
 // reads apikey and url from viper configuration,
 // then sets these into an RsWebClient instance
-func initWebClient() *rspace.RsWebClient {
+func initWebClient(clientTimeout int) *rspace.RsWebClient {
 	urlCfg, ok := viper.Get(BASE_URL_ENV_NAME).(string)
 	if !ok || len(urlCfg) == 0 {
 		exitWithStdErrMsg("No URL for RSpace  detected")
@@ -165,7 +169,7 @@ func initWebClient() *rspace.RsWebClient {
 		exitWithStdErrMsg("No API key detected")
 	}
 	messageStdErr("Api key:" + apikey[0:4] + "...")
-	webClient := rspace.NewWebClient(url, apikey)
+	webClient := rspace.NewWebClientCustomTimeout(url, apikey, clientTimeout)
 	return webClient
 }
 

@@ -172,3 +172,14 @@ func getMaxNameLength(results []rspace.BasicInfo) int {
 	}
 	return int(currLongest)
 }
+
+func globalIdListToIntList(slice []string) []int {
+	results := make([]int, 0)
+	for _, v := range slice {
+		id, _ := idFromGlobalId(v)
+		if id != 0 {
+			results = append(results, id)
+		}
+	}
+	return results
+}

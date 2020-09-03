@@ -1,0 +1,29 @@
+allcontainers:
+  - name: ab4freezer
+    containers:
+    - name: draw 1
+      containers:
+      - name: box1
+        rows: 6
+        columns: 8
+      - name: box2
+      - name: box3
+    - name: draw2
+      containers: 
+      - name: rack1
+      - name: rack2
+      - name: draw3
+  - name: ab5freezer
+    containers:
+    - name: draw 1
+      containers:
+      - name: box1
+        rows: 6
+        columns: 8
+      - name: box2
+      - name: box3
+    - name: draw2
+      containers: 
+      - name: rack1
+      - name: rack2
+      - name: draw3

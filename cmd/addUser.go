@@ -19,7 +19,9 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"sync"
 
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
@@ -55,7 +57,7 @@ var addUserCmd = &cobra.Command{
 	},
 }
 
-func createUsersFromFile() {
+func readUserCsvFile() [][]string {
 	files := []string{userArgs.UserCsvFileArg}
 	validateInputFilePaths(files)
 	file, _ := os.Open(files[0])
@@ -64,9 +66,20 @@ func createUsersFromFile() {
 	if err != nil {
 		exitWithErr(err)
 	}
+	return records
+}
+
+func createUsersFromFile() {
+	records := readUserCsvFile()
 	// TODO test with file, generate file
 	ctx := initialiseContext()
-	results := make([]*UserResult, 0)
+	results := make(chan *UserResult, 5)
+	tasks := make(chan *rspace.UserPost, 5)
+	wg := sync.WaitGroup{}
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go doSubmit(&wg, ctx, tasks, results)
+	}
 	for i, v := range records {
 		if i == 0 {
 			continue
@@ -79,9 +92,37 @@ func createUsersFromFile() {
 		builder.LastName(fields[1]).Affiliation(fields[6])
 		builder.ApiKey(fields[7])
 		userPost, _ := builder.Role(getRoleForArg(fields[3])).Build()
-		user, err := ctx.WebClient.UserNew(userPost)
-		results = append(results, &UserResult{user, err})
+		tasks <- userPost
 	}
+	close(tasks)
+	for i := 0; i < len(records)-1; i++ {
+		res := <-results
+		if res.success != nil {
+			ctx.write(prettyMarshal(res.success))
+		}
+	}
+	messageStdErr(fmt.Sprintf("waiting, tasks = %d, results = %d", len(tasks), len(results)))
+
+	wg.Wait()
+	messageStdErr("done")
+
+}
+
+func doSubmit(wg *sync.WaitGroup, ctx *Context, tasks <-chan *rspace.UserPost,
+	results chan<- *UserResult) {
+	defer func() {
+		wg.Done()
+		if err := recover(); err != nil {
+			log.Println("user creation failed..", err)
+		}
+	}()
+
+	for userPost := range tasks {
+		user, err := ctx.WebClient.UserNew(userPost)
+		result := &UserResult{user, err}
+		results <- result
+	}
+
 }
 
 // encapsulates result of attempt to create a user

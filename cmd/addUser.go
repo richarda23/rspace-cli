@@ -16,7 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/csv"
+	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/richarda23/rspace-client-go/rspace"
 	"github.com/spf13/cobra"
@@ -24,7 +27,7 @@ import (
 )
 
 type addUserArgs struct {
-	UsernameArg, FNameArg, LNameArg, EmailArg, RoleArg, AffiliationArg, PasswordFileArg string
+	UsernameArg, FNameArg, LNameArg, EmailArg, RoleArg, AffiliationArg, PasswordFileArg, UserCsvFileArg string
 }
 
 var userArgs = addUserArgs{}
@@ -34,21 +37,73 @@ var addUserCmd = &cobra.Command{
 	Use:   "addUser",
 	Short: "Adds a new user account",
 	Long: `Requires sysadmin permission. Add a new user account rm, equires username and email
-	at a minimum. Supply an initial password in a file.
+	at a minimum. Supply an initial password in a file. Alternatively, supply a CSV file of new users, 1 per row.
 	`,
 	Example: ` 
-	addUser --username newusername --email someone@somwhere.com --role user|pi| --pwdfile passwordfile
+	rspace eln addUser --username newusername --email someone@somwhere.com --role user|pi| --pwdfile passwordfile
+
+	// from a CSV file
+	rspace eln addUser --userfile users.csv 
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		userPost := validateFlags()
-		ctx := initialiseContext()
+		if len(userArgs.UserCsvFileArg) > 0 {
+			createUsersFromFile()
+		} else {
+			createSingleUser()
+		}
+
+	},
+}
+
+func createUsersFromFile() {
+	files := []string{userArgs.UserCsvFileArg}
+	validateInputFilePaths(files)
+	file, _ := os.Open(files[0])
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		exitWithErr(err)
+	}
+	// TODO test with file, generate file
+	fmt.Println(records)
+	ctx := initialiseContext()
+
+	for i, v := range records {
+		if i == 0 {
+			continue
+		}
+		messageStdErr(fmt.Sprintf("Creating user from row %d", i))
+		fields := v
+		builder := &rspace.UserPostBuilder{}
+		builder.Password(string(fields[5])).Username(fields[4])
+		builder.Email(rspace.Email(fields[2])).FirstName(fields[0])
+		builder.LastName(fields[1]).Affiliation(fields[6])
+		builder.ApiKey(fields[7])
+		userPost, _ := builder.Role(getRoleForArg(fields[3])).Build()
 		user, err := ctx.WebClient.UserNew(userPost)
 		if err != nil {
 			exitWithErr(err)
 		} else {
 			ctx.write(prettyMarshal(user))
 		}
-	},
+	}
+}
+
+// encapsulates result of attempt to create a user
+type UserResult struct {
+	success *rspace.UserInfo
+	failure error
+}
+
+func createSingleUser() {
+	userPost := validateFlags()
+	ctx := initialiseContext()
+	user, err := ctx.WebClient.UserNew(userPost)
+	if err != nil {
+		exitWithErr(err)
+	} else {
+		ctx.write(prettyMarshal(user))
+	}
 }
 
 func validateFlags() *rspace.UserPost {
@@ -69,7 +124,7 @@ func validateFlags() *rspace.UserPost {
 }
 
 func getRoleForArg(arg string) rspace.UserRoleType {
-	if arg == "pi" {
+	if arg == "pi" || arg == "ROLE_PI" {
 		return rspace.Pi
 	} else {
 		return rspace.User
@@ -86,4 +141,6 @@ func init() {
 	addUserCmd.Flags().StringVar(&userArgs.AffiliationArg, "affiliation", "unknown", "Affiliation (Community only)")
 
 	addUserCmd.Flags().StringVar(&userArgs.PasswordFileArg, "pwdfile", "", "a file containing the password")
+	addUserCmd.Flags().StringVar(&userArgs.UserCsvFileArg, "userfile", "", "a CSV file of new users")
+
 }

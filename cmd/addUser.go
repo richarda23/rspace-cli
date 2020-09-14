@@ -65,9 +65,8 @@ func createUsersFromFile() {
 		exitWithErr(err)
 	}
 	// TODO test with file, generate file
-	fmt.Println(records)
 	ctx := initialiseContext()
-
+	results := make([]*UserResult, 0)
 	for i, v := range records {
 		if i == 0 {
 			continue
@@ -81,11 +80,7 @@ func createUsersFromFile() {
 		builder.ApiKey(fields[7])
 		userPost, _ := builder.Role(getRoleForArg(fields[3])).Build()
 		user, err := ctx.WebClient.UserNew(userPost)
-		if err != nil {
-			exitWithErr(err)
-		} else {
-			ctx.write(prettyMarshal(user))
-		}
+		results = append(results, &UserResult{user, err})
 	}
 }
 

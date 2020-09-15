@@ -95,13 +95,18 @@ func createUsersFromFile() {
 		tasks <- userPost
 	}
 	close(tasks)
+	var createdUsers = make([]rspace.UserInfo, 0)
 	for i := 0; i < len(records)-1; i++ {
 		res := <-results
 		if res.success != nil {
-			ctx.write(prettyMarshal(res.success))
+			createdUsers = append(createdUsers, *res.success)
+		} else {
+			messageStdErr(res.failure.Error())
 		}
 	}
-	messageStdErr(fmt.Sprintf("waiting, tasks = %d, results = %d", len(tasks), len(results)))
+	userList := rspace.UserList{Users: createdUsers}
+	formatter := &UserListFormatter{&userList}
+	ctx.writeResult(formatter)
 
 	wg.Wait()
 	messageStdErr("done")

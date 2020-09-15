@@ -12,7 +12,7 @@ func init() {
 
 // this variable is searched/replaced by build.sh
 // if this variable is renamed, the script should be updated
-var rsVersion = "0.1.18"
+var rsVersion = "0.0.18-alpha3"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",

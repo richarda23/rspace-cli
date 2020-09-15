@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../../../rspace"
+		},
+		{
+			"path": "../../../github.com/richarda23/rspace-client-go/rspace"
 		}
 	],
 	"settings": {}

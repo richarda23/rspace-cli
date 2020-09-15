@@ -81,7 +81,10 @@ func doJob(ctx *Context, args []string) {
 				exitWithErr(err)
 			}
 			messageStdErr(fmt.Sprintf("downloading to %s (%s)", downloadpath, humanizeBytes(uint64(result.Result.Size))))
-			ctx.WebClient.DownloadExport(result.DownloadLink(), path)
+			err = ctx.WebClient.DownloadExport(result.DownloadLink(), path)
+			if err != nil {
+				exitWithErr(err)
+			}
 		} else {
 			messageStdErr(fmt.Sprintf("Job %d not completed, nothing to download", result.Id))
 		}

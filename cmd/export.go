@@ -94,8 +94,7 @@ func exportArgs(ctx *Context, args []string) {
 	post := rspace.ExportPost{format, scope, userOrGroupId, itemIds, exportCmdArgsArg.MaxLinkLevel}
 	messageStdErr("Waiting for export to start...")
 	if exportCmdArgsArg.Wait {
-
-		result, err := ctx.WebClient.Export(post, true)
+		result, err := ctx.WebClient.Export(post, true, messageStdErr)
 		if err != nil {
 			exitWithErr(err)
 		}
@@ -103,7 +102,7 @@ func exportArgs(ctx *Context, args []string) {
 			ctx.writeResult(&JobFormatter{result})
 		}
 	} else {
-		result, err := ctx.WebClient.Export(post, false)
+		result, err := ctx.WebClient.Export(post, false, messageStdErr)
 		if err != nil {
 			exitWithErr(err)
 		}

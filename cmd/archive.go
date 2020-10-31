@@ -30,7 +30,6 @@ Results are printed 1 row per archive file.
 --xsummary works with a *single* archive only and lists information about each document in the archive, including name, tags, modification/creation dates and owner.
 
  Results are printed 1 row per *document*.
-
 `,
 	Args: cobra.MinimumNArgs(1),
 	Example: `
@@ -54,6 +53,9 @@ rspace archive myArchive.zip --xsummary --outputFormat csv
 			ctx.writeResult(&zipSummaryFormatter{&zipSummaryList{summaries}})
 		} else if archiveArgsA.summaryXArg {
 			summaries, err := xSummary(args, &archiveArgsA)
+			if len(summaries) == 0 {
+				exitWithStdErrMsg("No documents to summarise")
+			}
 			if err != nil {
 				exitWithErr(err)
 			}
@@ -179,7 +181,10 @@ func inspectArchives(args []string, config *archiveArgs) ([]*zipSummary, error) 
 		parsedDocs := parseArchiveFiles(reader)
 		if archiveArgsA.summaryArg {
 			//messageStdErr(fmt.Sprintf("Summary for %s:", file))
-			summary, _ := summarise(parsedDocs)
+			summary, err := summarise(parsedDocs)
+			if err != nil {
+				exitWithErr(err)
+			}
 			summary.FileName = filepath.Base(file)
 			zipSummaries = append(zipSummaries, summary)
 		}
@@ -225,7 +230,8 @@ type zipSummary struct {
 
 func summarise(docs []*xmlDoc) (*zipSummary, error) {
 	if len(docs) == 0 {
-		errors.New("No documents to summarise")
+		err := errors.New("No documents to summarise")
+		return nil, err
 	}
 
 	maxDate := time.Time{}

@@ -27,8 +27,7 @@ var archiveCmd = &cobra.Command{
 
 Results are printed 1 row per archive file.
 
---xsummary works with a *single* archive only and lists information about each document in the archive,
- including name, tags, modification/creation dates and owner.
+--xsummary works with a *single* archive only and lists information about each document in the archive, including name, tags, modification/creation dates and owner.
 
  Results are printed 1 row per *document*.
 
@@ -43,7 +42,6 @@ rspace archive myArchive.zip otherArchive.zip --summary
 
 //extended summary of a single archive in csv format
 rspace archive myArchive.zip --xsummary --outputFormat csv
-
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -60,7 +58,6 @@ rspace archive myArchive.zip --xsummary --outputFormat csv
 				exitWithErr(err)
 			}
 			ctx.writeResult(&xSummaryFormatter{&xSummaryList{summaries}})
-
 		}
 	},
 }
@@ -154,7 +151,6 @@ func xSummary(args []string, config *archiveArgs) ([]*xmlDoc, error) {
 	}
 	parsedDocs := parseArchiveFiles(reader)
 	return parsedDocs, nil
-
 }
 
 func inspectArchives(args []string, config *archiveArgs) ([]*zipSummary, error) {
@@ -188,7 +184,6 @@ func inspectArchives(args []string, config *archiveArgs) ([]*zipSummary, error) 
 			zipSummaries = append(zipSummaries, summary)
 		}
 	}
-
 	return zipSummaries, nil
 }
 

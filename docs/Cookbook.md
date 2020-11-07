@@ -10,7 +10,7 @@ You have many files to upload and doing it through the web interface is tedious.
 
 This will upload all files in directory (and its subdirectories) and upload them, generating a summary document with links to all the uploaded files.
 
-If you want more control over what you upload you can combine with standard Unix tools, e.g.
+If you want more control over what you upload, you can combine with standard Unix tools, e.g.
 
     find . -name "*.jpg" | xargs -I file rspace eln upload file --add-summary
 
@@ -20,7 +20,7 @@ All the files uploaded will be placed in the 'ApiInbox' folder of their respecti
 
 ### Scenario
 
-You have a folder of files in RSpace Gallery and you want to download them all. Using the user interface to download each file one at a time is tiresome.
+You have a folder of files in RSpace Gallery and you want to download them all. Using the web interface to download each file one at a time is tiresome.
 
 ### Solution
 
@@ -70,7 +70,7 @@ If we wanted to share with 'read' permission only we can omit the `--permission`
 
 ### Scenario
 
-You have a many Word documents and you'd like to import them into RSpace as native RSpace documents. 
+You have  many Word documents, and you'd like to import them into RSpace as native RSpace documents. 
 
 ### Solution
 
@@ -88,7 +88,7 @@ If you're not quite sure what you'll end up importing, you can use the `--dry-ru
 ### Scenario 
 
 You have been making regular XML exports of your RSpace documents and have accumulated many .zip files over time, some of them quite big. You'd like to know what's inside withoout having to 
-unzip or import back into RSpace
+unzip or import back into RSpace.
 
 ### Solution
 

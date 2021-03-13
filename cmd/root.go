@@ -30,7 +30,16 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "rspace-client",
 	Short: "RSpace CLI",
-	Long:  "CLI for RSpace - make API calls to RSpace ",
+	Long: `CLI for RSpace - make API calls to RSpace
+To get started, set your API key and RSpace URL in file '.rspace' in your home folder, e.g.
+
+RSPACE_API_KEY=fsdfsd
+RSPACE_URL=https://myrspace.org/api/v1
+	
+Alternatively set these as environment variables.
+
+To see all the ELN commands run rspace eln --help
+`,
 	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 

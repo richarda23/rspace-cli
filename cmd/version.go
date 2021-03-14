@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	_ "embed"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -12,7 +13,8 @@ func init() {
 
 // this variable is searched/replaced by build.sh
 // if this variable is renamed, the script should be updated
-var rsVersion = "0.0.18-alpha3"
+//go:embed version.txt
+var rsVersion string
 
 var versionCmd = &cobra.Command{
 	Use:   "version",

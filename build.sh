@@ -32,7 +32,9 @@ LINUX_EXE=rspace-$VERSION
 
 function build {
    ## set the version into version command.
-   sed -i -e  "s/\(var rsVersion = \)\S\+/\1\"$VERSION\"/" cmd/version.go
+   #sed -i -e  "s/\(var rsVersion = \)\S\+/\1\"$VERSION\"/" cmd/version.go
+   # no uses go16 embed 
+   echo "$version" > cmd/version.txt
 
     ### remove any old builds of same name
     rm $DIST_DIR/win/$WIN_EXE

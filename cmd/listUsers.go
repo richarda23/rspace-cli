@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"sort"
 	"strconv"
 	"time"
 
@@ -83,12 +84,25 @@ func (ds *UserListFormatter) ToQuiet() []identifiable {
 func (ds *UserListFormatter) ToTable() *TableResult {
 	results := ds.UserList.Users
 
-	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Username", 10}, columnDef{"FirstName", 25},
-		columnDef{"LastName", 25}}
+	sort.SliceStable(results,
+		func(i, j int) bool { return len(results[j].Email) < len(results[i].Email) })
+	maxEmailLen := len(results[0].Email)
+	sort.SliceStable(results,
+		func(i, j int) bool { return len(results[j].Username) < len(results[i].Username) })
+	maxUnameLen := len(results[0].Username)
+	sort.SliceStable(results,
+		func(i, j int) bool { return len(results[j].FirstName) < len(results[i].FirstName) })
+	maxFnameLen := len(results[0].FirstName)
+	sort.SliceStable(results,
+		func(i, j int) bool { return len(results[j].LastName) < len(results[i].LastName) })
+	maxLnameLen := len(results[0].LastName)
+	headers := []columnDef{columnDef{"Id", 8}, columnDef{"Username", maxUnameLen},
+		columnDef{"email", maxEmailLen}, columnDef{"FirstName", maxFnameLen},
+		columnDef{"LastName", maxLnameLen}}
 
 	rows := make([][]string, 0)
 	for _, res := range results {
-		data := []string{strconv.Itoa(res.Id), res.Username, res.FirstName,
+		data := []string{strconv.Itoa(res.Id), res.Username, res.Email, res.FirstName,
 			res.LastName}
 		rows = append(rows, data)
 	}

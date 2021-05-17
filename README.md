@@ -21,12 +21,6 @@ It is written in the Go programming language.
 
 ### Downloading
 
-Signed executables for Linux, MacOSX and Windows (amd64 architecture) are available from Bintray:
-
-[ ![Download](https://api.bintray.com/packages/ra22597/rspace-cli/rspace-cli/images/download.svg) ](https://bintray.com/ra22597/rspace-cli/rspace-cli/_latestVersion)
-
-Download the latest version for your platform, rename to 'rspace' and check it works:
-
     rspace eln --help
 
 to show commands and their arguments. You can also view an [HTML version](docs/generated/rspace-client_eln.md) of the documentation.

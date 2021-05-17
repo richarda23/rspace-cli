@@ -15,7 +15,7 @@
 ##
 
 VERSION=$1
-CMD=$2 ##'p', 'b', 'pb'
+CMD=$2 ##'p', 'b', 'bp'
 if [[ -z "$CMD" ]]; then
     CMD="b" ## build only is default
 fi
